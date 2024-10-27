@@ -15,10 +15,11 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v4
+    - name: Set permissions for node_modules
+      run: sudo chmod -R 777 /home/souheib/runners/joy-it-backend/_work/joy-it-backend/joy-it-backend/node_modules
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -26,3 +27,4 @@ jobs:
         cache: 'yarn'
     - run: npm install
     - run: npm run build --if-present
+
