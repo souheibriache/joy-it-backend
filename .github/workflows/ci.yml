@@ -17,8 +17,8 @@ jobs:
         with:
           clean: true
       - run: |
-          sudo chmod -R u+rw /home/souheib/runners/joy-it-backend/_work/joy-it-backend/joy-it-backend/
-          sudo rm -rf /home/souheib/runners/joy-it-backend/_work/joy-it-backend/joy-it-backend/*
+          chmod -R u+rw /home/souheib/runners/joy-it-backend/_work/joy-it-backend/joy-it-backend/
+          rm -rf /home/souheib/runners/joy-it-backend/_work/joy-it-backend/joy-it-backend/*
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
