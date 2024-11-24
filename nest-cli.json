@@ -3,6 +3,63 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true
+  },
+  "projects": {
+    "upload": {
+      "type": "library",
+      "root": "libs/upload",
+      "entryFile": "index",
+      "sourceRoot": "libs/upload/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/upload/tsconfig.lib.json"
+      }
+    },
+    "pagination": {
+      "type": "library",
+      "root": "libs/pagination",
+      "entryFile": "index",
+      "sourceRoot": "libs/pagination/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/pagination/tsconfig.lib.json"
+      }
+    },
+    "database": {
+      "type": "library",
+      "root": "libs/database",
+      "entryFile": "index",
+      "sourceRoot": "libs/database/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/database/tsconfig.lib.json"
+      }
+    },
+    "config": {
+      "type": "library",
+      "root": "libs/config",
+      "entryFile": "index",
+      "sourceRoot": "libs/config/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/config/tsconfig.lib.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    },
+    "base-entity": {
+      "type": "library",
+      "root": "libs/base-entity",
+      "entryFile": "index",
+      "sourceRoot": "libs/base-entity/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/base-entity/tsconfig.lib.json"
+      }
+    }
   }
 }

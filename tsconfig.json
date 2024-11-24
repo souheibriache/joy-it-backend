@@ -16,6 +16,44 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@app/upload": [
+        "libs/upload/src"
+      ],
+      "@app/upload/*": [
+        "libs/upload/src/*"
+      ],
+      "@app/pagination": [
+        "libs/pagination/src"
+      ],
+      "@app/pagination/*": [
+        "libs/pagination/src/*"
+      ],
+      "@app/database": [
+        "libs/database/src"
+      ],
+      "@app/database/*": [
+        "libs/database/src/*"
+      ],
+      "@app/config": [
+        "libs/config/src"
+      ],
+      "@app/config/*": [
+        "libs/config/src/*"
+      ],
+      "@app/common": [
+        "libs/common/src"
+      ],
+      "@app/common/*": [
+        "libs/common/src/*"
+      ],
+      "@app/base-entity": [
+        "libs/base-entity/src"
+      ],
+      "@app/base-entity/*": [
+        "libs/base-entity/src/*"
+      ]
+    }
   }
 }
