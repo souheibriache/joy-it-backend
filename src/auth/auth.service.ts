@@ -2,15 +2,12 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { SignupDto } from './dto/sign-up.dto';
-import { ConfigService } from '@app/config';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/entities';
 import { UserService } from 'src/user/user.service';
@@ -18,7 +15,10 @@ import { LoginDto, LoginUserPayload, RefreshTokenDto } from './dto';
 import { MetadataDto } from './dto/metadata.dto';
 import { UserDto } from './dto/user.dto';
 import { IRefreshToken } from './interfaces';
-import { ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL } from '@app/common/utils/constants/jwt-ttl';
+import {
+  ACCESS_TOKEN_TTL,
+  REFRESH_TOKEN_TTL,
+} from '@app/common/utils/constants/jwt-ttl';
 import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Payload } from './dto/payload.dto';
 
@@ -28,7 +28,7 @@ export class AuthService {
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     private readonly userService: UserService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   async signup(createUserDto: SignupDto) {
@@ -76,10 +76,16 @@ export class AuthService {
     return await bcrypt.compare(password, hashedPassword);
   }
 
-  async authenticate(user: User, metadata: MetadataDto): Promise<LoginUserPayload> {
+  async authenticate(
+    user: User,
+    metadata: MetadataDto,
+  ): Promise<LoginUserPayload> {
     const access_token = await this.generateAccessToken({ ...user, metadata });
 
-    const refresh_token = await this.generateRefreshToken({ ...user, metadata });
+    const refresh_token = await this.generateRefreshToken({
+      ...user,
+      metadata,
+    });
 
     return { access_token, refresh_token };
   }
@@ -96,16 +102,25 @@ export class AuthService {
     const expiresIn = REFRESH_TOKEN_TTL;
 
     const refreshToken = await this.createRefreshToken(user, expiresIn);
-    const token = await this.jwtService.signAsync({ ...payload, jwtId: refreshToken.id }, { expiresIn });
+    const token = await this.jwtService.signAsync(
+      { ...payload, jwtId: refreshToken.id },
+      { expiresIn },
+    );
 
     return token;
   }
 
-  async createRefreshToken(user: Pick<User, 'id'>, ttl: number): Promise<IRefreshToken> {
+  async createRefreshToken(
+    user: Pick<User, 'id'>,
+    ttl: number,
+  ): Promise<IRefreshToken> {
     const expirationDate = new Date();
     expirationDate.setTime(expirationDate.getTime() + ttl);
 
-    const refreshToken = this.refreshTokenRepository.create({ user: user, expires: expirationDate });
+    const refreshToken = this.refreshTokenRepository.create({
+      user: user,
+      expires: expirationDate,
+    });
     return await this.refreshTokenRepository.save(refreshToken);
   }
 
