@@ -1,7 +1,17 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities';
-import { FindOptionsOrder, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from 'typeorm';
+import {
+  FindOptionsOrder,
+  FindOptionsRelations,
+  FindOptionsSelect,
+  FindOptionsWhere,
+  Repository,
+} from 'typeorm';
 import { IUser } from './interfaces/user.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 
@@ -9,7 +19,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -26,7 +36,7 @@ export class UserService {
     where?: FindOptionsWhere<User>,
     relations?: FindOptionsRelations<User>,
     order?: FindOptionsOrder<User>,
-    select?: FindOptionsSelect<User>
+    select?: FindOptionsSelect<User>,
   ) {
     return await this.userRepository.find({ where, relations, order, select });
   }
@@ -38,7 +48,15 @@ export class UserService {
     select?: FindOptionsSelect<User>;
   }): Promise<IUser> {
     const { where, relations, order, select } = findOptions;
-    return await this.userRepository.findOne({ where, relations, order, select });
+    const user = await this.userRepository.findOne({
+      where,
+      relations,
+      order,
+      select,
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
   }
 
   async getOneById(id: string): Promise<IUser> {
