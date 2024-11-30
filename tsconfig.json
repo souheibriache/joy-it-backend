@@ -53,6 +53,12 @@
       ],
       "@app/base-entity/*": [
         "libs/base-entity/src/*"
+      ],
+      "@app/media": [
+        "libs/media/src"
+      ],
+      "@app/media/*": [
+        "libs/media/src/*"
       ]
     }
   }

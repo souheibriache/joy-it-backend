@@ -1,7 +1,9 @@
 import * as Joi from 'joi';
 
 const APP_VALIDATION = {
-  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'test')
+    .default('development'),
   PORT: Joi.number().default(3000),
   JWT_AUTH_KEY: Joi.string().required(),
   RESET_PASSWORD_SECRET_KEY: Joi.string().required(),

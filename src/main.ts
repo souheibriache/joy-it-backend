@@ -1,8 +1,34 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import * as compression from 'compression';
+import { ValidationPipe } from '@nestjs/common';
+import { ValidationError } from 'class-validator';
+import { ValidationErrorException } from '@app/common/utils/error-handler';
+import { setupSwagger } from '@app/common/utils/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(3000);
+
+  app.use(compression());
+  app.enableCors();
+
+  const prefixBaseApi = 'api/v1';
+  app.setGlobalPrefix(prefixBaseApi);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      stopAtFirstError: true,
+      exceptionFactory: (errors: ValidationError[]) => {
+        return new ValidationErrorException(errors);
+      },
+    }),
+  );
+
+  setupSwagger(app);
+
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

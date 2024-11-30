@@ -60,6 +60,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/base-entity/tsconfig.lib.json"
       }
+    },
+    "media": {
+      "type": "library",
+      "root": "libs/media",
+      "entryFile": "index",
+      "sourceRoot": "libs/media/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/media/tsconfig.lib.json"
+      }
     }
   }
 }
