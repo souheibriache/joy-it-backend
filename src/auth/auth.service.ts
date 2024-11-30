@@ -5,7 +5,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { SignupDto } from './dto/sign-up.dto';
 import * as bcrypt from 'bcrypt';
@@ -49,12 +49,22 @@ export class AuthService {
     return true;
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto, isSuperUser?: boolean) {
     const { login, password } = loginDto;
+
+    let where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = [
+      { email: login },
+      { userName: login },
+    ];
+    if (isSuperUser) {
+      for (const whereElement of where) {
+        whereElement.isSuperUser = true;
+      }
+    }
 
     const user = await this.userService.findOne({
       select: { password: true, id: true, email: true, userName: true },
-      where: [{ email: login }, { userName: login }],
+      where: where,
     });
 
     if (!user) throw new ForbiddenException('Wrong credintials');
@@ -183,5 +193,11 @@ export class AuthService {
         throw new UnprocessableEntityException('Invalid refresh token !');
       }
     }
+  }
+
+  async isSuperUser(userId: string) {
+    const user = await this.userService.findOne({ where: { id: userId } });
+
+    return user.isSuperUser;
   }
 }
