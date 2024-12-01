@@ -1,0 +1,7 @@
+export enum ActivityType {
+  BIEN_ETRE = 'BIEN_ETRE',
+  TEAM_BUILDING = 'TEAM_BUILDING',
+  SPORT = 'SPORT',
+  NOURRITURE = 'NOURRITURE',
+  AUTRE = 'AUTRE',
+}

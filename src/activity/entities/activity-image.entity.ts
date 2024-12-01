@@ -1,9 +1,8 @@
-import { BaseEntity } from '@app/base-entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Activity } from './activity.entity';
 import { Media } from '@app/media/entities';
 
-@Entity('product_image')
+@Entity('activity_image')
 export class ActivityImage extends Media {
   @Column({ type: 'boolean', default: false })
   isMain: boolean;
