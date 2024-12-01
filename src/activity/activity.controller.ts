@@ -88,7 +88,7 @@ export class ActivityController {
   @UseInterceptors(FilesInterceptor('images', 5))
   @ApiConsumes('multipart/form-data')
   @ApiBearerAuth()
-  async updateProductImages(
+  async updateActivityImages(
     @Param('activityId') activityId: string,
     @Body() updateActivityImagesDto: UpdateActivityImagesDto,
     @UploadedFiles(

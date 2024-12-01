@@ -9,5 +9,6 @@ import { UploadModule } from '@app/upload';
   imports: [TypeOrmModule.forFeature([Activity, ActivityImage]), UploadModule],
   controllers: [ActivityController],
   providers: [ActivityService],
+  exports: [ActivityService],
 })
 export class ActivityModule {}

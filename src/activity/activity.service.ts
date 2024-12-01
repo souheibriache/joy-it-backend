@@ -63,7 +63,7 @@ export class ActivityService {
     relations?: FindOptionsRelations<Activity>,
     order?: FindOptionsOrder<Activity>,
   ) {
-    return await this.activityImageRepository.find({ where, relations, order });
+    return await this.activityRepository.find({ where, relations, order });
   }
 
   async findOne(
@@ -154,14 +154,14 @@ export class ActivityService {
 
   private async queryActivities(
     where: FindOptionsWhere<Activity>,
-    productOptionsDto: ActivityOptionsDto,
+    activityOptionsDto: ActivityOptionsDto,
   ): Promise<PageDto<IActivity>> {
     const {
       sort,
       skip,
       take,
       query = {} as ActivityFilterDto,
-    } = productOptionsDto;
+    } = activityOptionsDto;
     const { search, types, isAvailable, durationMax, durationMin } = query;
 
     // Create a query builder
@@ -227,7 +227,7 @@ export class ActivityService {
     // Generate pagination metadata
     const pageMetaDto = new PageMetaDto({
       itemCount,
-      pageOptionsDto: productOptionsDto,
+      pageOptionsDto: activityOptionsDto,
     });
     return new PageDto(items, pageMetaDto);
   }

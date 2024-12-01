@@ -11,7 +11,7 @@ export class Activity extends BaseEntity {
   @Column()
   description: string;
 
-  @Column({ array: true, type: 'text' })
+  @Column({ array: true, type: 'text', name: 'key_words' })
   keyWords: string[];
 
   @Column()

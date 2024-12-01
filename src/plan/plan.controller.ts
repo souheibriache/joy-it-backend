@@ -1,7 +1,47 @@
-import { Controller } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { PlanService } from './plan.service';
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import { SuperUserGuard } from 'src/auth/guards/super-user.guard';
+import { CreatePlanDto, UpdatePlanDto } from './dto';
 
 @Controller('plan')
 export class PlanController {
   constructor(private readonly planService: PlanService) {}
+
+  @Post()
+  @UseGuards(AccessTokenGuard, SuperUserGuard)
+  async create(@Body() createPlanDto: CreatePlanDto) {
+    return await this.planService.create(createPlanDto);
+  }
+
+  @Put('/:planId')
+  @UseGuards(AccessTokenGuard, SuperUserGuard)
+  async update(@Body() updatePlanDto: UpdatePlanDto, @Param('planId') planId) {
+    return await this.planService.update(planId, updatePlanDto);
+  }
+
+  @Get()
+  async getAll() {
+    return await this.planService.find({}, { activities: true });
+  }
+
+  @Get('/:planId')
+  async getOne(@Param('planId') planId) {
+    return await this.planService.findOne({ id: planId }, { activities: true });
+  }
+
+  @Delete('/:planId')
+  @UseGuards(AccessTokenGuard, SuperUserGuard)
+  async delete(@Param('planId') planId: string) {
+    return await this.planService.delete(planId);
+  }
 }
