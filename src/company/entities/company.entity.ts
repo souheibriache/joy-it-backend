@@ -23,6 +23,9 @@ export class Company extends BaseEntity {
   @Column()
   city: string;
 
+  @Column({ name: 'phone_number' })
+  phoneNumber: string;
+
   @OneToOne(() => Media)
   @JoinColumn({ name: 'logo_id', referencedColumnName: 'id' })
   logo: Media;

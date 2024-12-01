@@ -8,27 +8,70 @@ import {
 } from 'typeorm';
 import { Company } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateCompanyDto } from './dto';
+import { CreateCompanyDto, UpdateCompanyDto } from './dto';
 import { Client } from 'src/client/entities';
 import { CompanyOptionsDto } from './dto/company-options.dto';
 import { ICompany } from './interfaces';
 import { PageDto, PageMetaDto } from '@app/pagination/dto';
 import { CompanyFilterDto } from './dto/company-filter.dto';
+import { Media } from '@app/media/entities';
+import { CloudinaryResponse } from '@app/upload/types/cloudinary-response.type';
+import { MediaService } from '@app/media';
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
+
+    private readonly mediaService: MediaService,
   ) {}
 
-  async create(createCompanyDto: CreateCompanyDto, client: Client) {
+  async create(
+    createCompanyDto: CreateCompanyDto,
+    uploadedLogo: CloudinaryResponse,
+    client: Client,
+  ) {
+    const logo: Media = await this.mediaService.create({
+      fullUrl: uploadedLogo.url,
+      name: uploadedLogo.name,
+      originalName: uploadedLogo.original_filename,
+      placeHolder: createCompanyDto.name,
+      resourceType: uploadedLogo.resource_type,
+    });
+
     const company = this.companyRepository.create({
       ...createCompanyDto,
+      logo,
       client,
     });
 
     return await this.companyRepository.save(company);
+  }
+
+  async update(
+    updateCompanyDto: UpdateCompanyDto,
+    where: FindOptionsWhere<Company>,
+  ) {
+    const company = await this.findOne(where);
+
+    await this.companyRepository.update(company.id, updateCompanyDto);
+
+    return await this.findOne({ id: company.id });
+  }
+
+  async updateCompanyLogo(uploadedLogo: CloudinaryResponse, clientId: string) {
+    const company = await this.findOne({ client: { id: clientId } });
+    const logo: Media = await this.mediaService.create({
+      fullUrl: uploadedLogo.url,
+      name: uploadedLogo.name,
+      originalName: uploadedLogo.original_filename,
+      placeHolder: company.name,
+      resourceType: uploadedLogo.resource_type,
+    });
+
+    company.logo = logo;
+    return await company.save();
   }
 
   async find(
@@ -88,7 +131,11 @@ export class CompanyService {
       where.isVerified = isVerified;
     }
 
-    const relations: FindOptionsRelations<Company> = { client: true };
+    const relations: FindOptionsRelations<Company> = {
+      client: true,
+      logo: true,
+      subscription: true,
+    };
 
     const [items, itemCount] = await this.companyRepository.findAndCount({
       where,
@@ -105,5 +152,11 @@ export class CompanyService {
       pageOptionsDto: companyOptionsDto,
     });
     return new PageDto(items, pageMetaDto);
+  }
+
+  async verifyCompany(companyId: string) {
+    const company = await this.findOne({ id: companyId });
+    company.isVerified = true;
+    return await company.save();
   }
 }
