@@ -21,6 +21,8 @@ import {
 } from '@app/common/utils/constants/jwt-ttl';
 import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Payload } from './dto/payload.dto';
+import { ClientService } from 'src/client/client.service';
+import { Client } from 'src/client/entities';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +31,7 @@ export class AuthService {
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly clientService: ClientService,
   ) {}
 
   async signup(createUserDto: SignupDto) {
@@ -49,18 +52,34 @@ export class AuthService {
     return true;
   }
 
-  async login(loginDto: LoginDto, isSuperUser?: boolean) {
+  async isValidUserName(username: string) {
+    const users = await this.userService.findAll({
+      userName: username.trim().toLowerCase(),
+    });
+    if (users.length > 0) throw new BadRequestException('Invalid username');
+    return true;
+  }
+
+  async generageUsername(firstName: string, lastName: string, count) {
+    let username = firstName + '.' + lastName;
+    if (count) {
+      count++;
+    } else {
+      count = 1;
+    }
+
+    const users = await this.userService.findAll({ userName: username });
+    if (users) return this.generageUsername(firstName, lastName, count);
+    else return username;
+  }
+
+  async loginAdmin(loginDto: LoginDto) {
     const { login, password } = loginDto;
 
     let where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = [
-      { email: login },
-      { userName: login },
+      { email: login, isSuperUser: true },
+      { userName: login, isSuperUser: true },
     ];
-    if (isSuperUser) {
-      for (const whereElement of where) {
-        whereElement.isSuperUser = true;
-      }
-    }
 
     const user = await this.userService.findOne({
       select: { password: true, id: true, email: true, userName: true },
@@ -74,6 +93,30 @@ export class AuthService {
     if (!isValidPassword) throw new ForbiddenException('Wrong credintials');
 
     return await this.authenticate(user, {});
+  }
+
+  async login(loginDto: LoginDto) {
+    const { login, password } = loginDto;
+
+    let where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = [
+      { email: login },
+      { userName: login },
+    ];
+
+    const user = await this.userService.findOne({
+      select: { password: true, id: true, email: true, userName: true },
+      where: where,
+    });
+
+    if (!user) throw new ForbiddenException('Wrong credintials');
+
+    const isValidPassword = await this.compare(password, user.password);
+
+    if (!isValidPassword) throw new ForbiddenException('Wrong credintials');
+
+    const payloadMetaData = await this.getClientMetaData(user.id);
+
+    return await this.authenticate(user, payloadMetaData);
   }
 
   async hash(password: string): Promise<string> {
@@ -146,7 +189,7 @@ export class AuthService {
     const { refreshToken } = input;
     const { user } = await this.resolveRefreshToken(refreshToken);
 
-    const metadata = {};
+    const metadata = await this.getClientMetaData(user.id);
 
     const accessToken = await this.generateAccessToken({
       ...user,
@@ -199,5 +242,19 @@ export class AuthService {
     const user = await this.userService.findOne({ where: { id: userId } });
 
     return user.isSuperUser;
+  }
+
+  async getClientMetaData(clientId: string) {
+    const client = await this.clientService.findOne(
+      { id: clientId },
+      { company: { subscription: true } },
+    );
+
+    return {
+      companyId: client?.company?.id,
+      isVerified: client.isVerified,
+      isCompanyVerified: client?.company?.isVerified,
+      hasSubscription: client?.company?.subscription?.id,
+    };
   }
 }

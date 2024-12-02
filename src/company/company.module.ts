@@ -11,5 +11,6 @@ import { CompanyController } from './controllers/company.controller';
   imports: [TypeOrmModule.forFeature([Company]), MediaModule, UploadModule],
   controllers: [CompanyController, CompanyAdminController],
   providers: [CompanyService],
+  exports: [CompanyService],
 })
 export class CompanyModule {}

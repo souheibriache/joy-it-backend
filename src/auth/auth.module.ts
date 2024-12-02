@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@app/config';
 import { UserModule } from 'src/user/user.module';
 import { JwtStrategy } from './strategies';
+import { ClientModule } from 'src/client/client.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { JwtStrategy } from './strategies';
     TypeOrmModule.forFeature([RefreshToken]),
     UserModule,
     ConfigModule,
+    ClientModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

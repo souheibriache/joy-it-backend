@@ -14,7 +14,7 @@ export class Subscription extends BaseEntity {
   company: Company;
 
   @Column({ type: 'timestamptz', name: 'start_date', default: new Date() })
-  startData: Date;
+  startDate: Date;
 
   @Column({ type: 'timestamptz', name: 'end_date', default: new Date() })
   endDate: Date;
