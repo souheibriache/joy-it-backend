@@ -1,7 +1,18 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/sign-up.dto';
 import { LoginDto, RefreshTokenDto } from './dto';
+import { AccessTokenGuard } from './guards/access-token.guard';
+import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('accounts')
 export class AuthController {
@@ -25,5 +36,13 @@ export class AuthController {
   @Post('refresh-token')
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
     return await this.authService.refreshToken(refreshTokenDto);
+  }
+
+  @Get('/profile')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  async getMyProfile(@Request() req: IRequestWithUser) {
+    const userId = req?.user?.id;
+    return await this.authService.getProfile(userId);
   }
 }

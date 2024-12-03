@@ -8,7 +8,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CompanyService } from '../company.service';
-import { UploadService } from '@app/upload';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 import { SuperUserGuard } from 'src/auth/guards/super-user.guard';
 import { CompanyOptionsDto, UpdateCompanyDto } from '../dto';
@@ -20,10 +19,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 @UseGuards(AccessTokenGuard, SuperUserGuard)
 @ApiBearerAuth()
 export class CompanyAdminController {
-  constructor(
-    private readonly companyService: CompanyService,
-    private readonly uploadService: UploadService,
-  ) {}
+  constructor(private readonly companyService: CompanyService) {}
 
   @Get()
   async getPaginatedCompanies(

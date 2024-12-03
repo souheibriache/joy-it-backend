@@ -12,6 +12,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { PlanModule } from './plan/plan.module';
 import { ActivityModule } from './activity/activity.module';
 import { MediaModule } from '@app/media';
+import { ScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { MediaModule } from '@app/media';
     PlanModule,
     ActivityModule,
     MediaModule,
+    ScheduleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

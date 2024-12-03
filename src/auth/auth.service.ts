@@ -257,4 +257,11 @@ export class AuthService {
       hasSubscription: client?.company?.subscription?.id,
     };
   }
+
+  async getProfile(userId: string) {
+    return await this.userService.findOne({
+      where: { id: userId },
+      select: { firstName: true, lastName: true, email: true, userName: true },
+    });
+  }
 }

@@ -12,6 +12,7 @@ import { PlanService } from './plan.service';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 import { SuperUserGuard } from 'src/auth/guards/super-user.guard';
 import { CreatePlanDto, UpdatePlanDto } from './dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('plan')
 export class PlanController {
@@ -19,12 +20,14 @@ export class PlanController {
 
   @Post()
   @UseGuards(AccessTokenGuard, SuperUserGuard)
+  @ApiBearerAuth()
   async create(@Body() createPlanDto: CreatePlanDto) {
     return await this.planService.create(createPlanDto);
   }
 
   @Put('/:planId')
   @UseGuards(AccessTokenGuard, SuperUserGuard)
+  @ApiBearerAuth()
   async update(@Body() updatePlanDto: UpdatePlanDto, @Param('planId') planId) {
     return await this.planService.update(planId, updatePlanDto);
   }
@@ -41,6 +44,7 @@ export class PlanController {
 
   @Delete('/:planId')
   @UseGuards(AccessTokenGuard, SuperUserGuard)
+  @ApiBearerAuth()
   async delete(@Param('planId') planId: string) {
     return await this.planService.delete(planId);
   }

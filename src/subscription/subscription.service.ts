@@ -30,6 +30,10 @@ export class SubscriptionService {
       endDate,
     });
 
+    await this.companyService.update(
+      { credit: company.credit + plan.credit },
+      { id: company.id },
+    );
     return await this.subscriptionRepository.save(subscription);
   }
 }

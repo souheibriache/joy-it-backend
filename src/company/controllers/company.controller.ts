@@ -96,7 +96,7 @@ export class CompanyController {
     const clientId = req?.user?.id;
     return await this.companyService.findOne(
       { client: { id: clientId } },
-      { client: true, logo: true },
+      { client: true, logo: true, subscription: true },
     );
   }
 }
