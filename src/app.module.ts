@@ -13,6 +13,8 @@ import { PlanModule } from './plan/plan.module';
 import { ActivityModule } from './activity/activity.module';
 import { MediaModule } from '@app/media';
 import { ScheduleModule } from './schedule/schedule.module';
+import { APP_FILTER } from '@nestjs/core';
+import { ValidationErrorFilter } from '@app/common/utils/error-handler/validation-error-filter';
 
 @Module({
   imports: [
@@ -30,6 +32,12 @@ import { ScheduleModule } from './schedule/schedule.module';
     ScheduleModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: ValidationErrorFilter,
+    },
+  ],
 })
 export class AppModule {}

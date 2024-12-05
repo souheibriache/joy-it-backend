@@ -35,19 +35,17 @@ export class AuthService {
   ) {}
 
   async signup(createUserDto: SignupDto) {
-    const user = await this.userService.findOne({
-      where: {
-        email: createUserDto.email,
-        userName: createUserDto.userName,
-      },
+    const user = await this.userService.findAll({
+      email: createUserDto.email,
+      userName: createUserDto.userName,
     });
-    if (user) throw new BadRequestException('This user already exists!');
+    if (user.length) throw new BadRequestException('This user already exists!');
 
     const { password, ...rest } = createUserDto;
 
     const hashedPassword = await this.hash(password);
 
-    await this.userService.create({ ...rest, password: hashedPassword });
+    await this.clientService.create({ ...rest, password: hashedPassword });
 
     return true;
   }
@@ -240,8 +238,7 @@ export class AuthService {
 
   async isSuperUser(userId: string) {
     const user = await this.userService.findOne({ where: { id: userId } });
-
-    return user.isSuperUser;
+    return user?.isSuperUser;
   }
 
   async getClientMetaData(clientId: string) {

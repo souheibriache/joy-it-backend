@@ -19,7 +19,7 @@ import { UploadService } from '@app/upload';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 import { SuperUserGuard } from 'src/auth/guards/super-user.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import {
   ActivityOptionsDto,
   CreateActivityDto,
@@ -31,7 +31,8 @@ import { MEDIA_TYPES } from '@app/upload/constants/file.types';
 import { PageDto } from '@app/pagination/dto';
 import { IActivity } from './interfaces';
 
-@Controller('activity')
+@Controller('activities')
+@ApiTags('activities')
 export class ActivityController {
   constructor(
     private readonly activityService: ActivityService,
@@ -56,7 +57,10 @@ export class ActivityController {
     )
     files: Express.Multer.File[],
   ) {
-    const uploadedFiles = await this.uploadService.uploadMany(files);
+    const uploadedFiles = await this.uploadService.uploadMany(
+      files,
+      'activities',
+    );
     return await this.activityService.create(createActivityDto, uploadedFiles);
   }
 
@@ -103,7 +107,10 @@ export class ActivityController {
     files: Express.Multer.File[],
   ) {
     if (!files) return;
-    const uploadedFiles = await this.uploadService.uploadMany(files);
+    const uploadedFiles = await this.uploadService.uploadMany(
+      files,
+      'activities',
+    );
     return await this.activityService.updateImages(
       activityId,
       updateActivityImagesDto,

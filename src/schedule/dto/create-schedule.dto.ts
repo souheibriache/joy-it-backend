@@ -15,7 +15,7 @@ export class CreateScheduleDto {
   activityId: string;
 
   @ApiProperty()
-  @IsDate()
+  @IsString()
   date: Date;
 
   @ApiProperty({ type: Number })

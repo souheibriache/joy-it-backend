@@ -30,9 +30,19 @@ export class ScheduleService {
     const { activityId, ...rest } = createScheduleDto;
 
     const activity = await this.activityService.findOne({ id: activityId });
-    const company = await this.companyService.findOne({
-      client: { id: clientId },
-    });
+    const company = await this.companyService.findOne(
+      {
+        client: { id: clientId },
+      },
+      { subscription: { plan: { activities: true } } },
+    );
+
+    if (
+      !company?.subscription?.plan?.activities?.find(
+        (activity) => activity.id === activityId,
+      )
+    )
+      throw new BadRequestException('Your plan does not include this activity');
 
     if (company.credit < activity.creditCost)
       throw new BadRequestException('Unsifficient credit for this activity');

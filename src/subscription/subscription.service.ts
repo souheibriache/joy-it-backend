@@ -30,6 +30,35 @@ export class SubscriptionService {
       endDate,
     });
 
+    const savedSubscription =
+      await this.subscriptionRepository.save(subscription);
+
+    await this.companyService.update(
+      { credit: company.credit + plan.credit },
+      { id: company.id },
+    );
+    company.subscription = savedSubscription;
+    await company.save();
+
+    return savedSubscription;
+  }
+
+  async createByAdmin(planId: string, companyId: string) {
+    const company = await this.companyService.findOne({
+      id: companyId,
+    });
+    const plan = await this.planService.findOne({ id: planId });
+
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + 1000 * 60 * 60 * 24 * 30);
+
+    const subscription = await this.subscriptionRepository.create({
+      plan,
+      company,
+      startDate,
+      endDate,
+    });
+
     await this.companyService.update(
       { credit: company.credit + plan.credit },
       { id: company.id },

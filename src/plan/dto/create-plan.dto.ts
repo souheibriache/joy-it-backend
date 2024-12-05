@@ -8,7 +8,9 @@ import {
   IsString,
   IsUUID,
   Validate,
+  ValidateNested,
 } from 'class-validator';
+import { UUID } from 'typeorm/driver/mongodb/bson.typings';
 
 export class CreatePlanDto {
   @ApiProperty()
@@ -32,10 +34,8 @@ export class CreatePlanDto {
   @IsArray()
   benifits: string[];
 
-  @ApiProperty({ isArray: true })
+  @ApiProperty({ isArray: true, type: UUID })
   @IsArray()
-  @IsNotEmpty()
-  @IsUUID()
   @Validate(IsUnique)
   activities: string[];
 }

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsPhoneNumber, IsString } from 'class-validator';
 
 export class CreateCompanyDto {
@@ -30,5 +31,6 @@ export class CreateCompanyDto {
 
   @ApiProperty({ type: Number })
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   employeesNumber: number;
 }

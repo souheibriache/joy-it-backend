@@ -16,7 +16,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { MEDIA_TYPES } from '@app/upload/constants/file.types';
 import { UploadService } from '@app/upload';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
@@ -25,7 +25,8 @@ import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.
 import { CompanyService } from '../company.service';
 import { CreateCompanyDto, UpdateCompanyDto } from '../dto';
 
-@Controller('company')
+@Controller('companies')
+@ApiTags('Companies')
 @UseGuards(AccessTokenGuard)
 @ApiBearerAuth()
 export class CompanyController {
@@ -52,7 +53,8 @@ export class CompanyController {
     file: Express.Multer.File,
   ) {
     const client = req.user;
-    const uploadedFile = await this.uploadService.upload(file);
+    const uploadedFile = await this.uploadService.upload(file, 'companies');
+    console.log({ uploadedFile });
     return await this.companyService.create(
       createCompanyDto,
       uploadedFile,
@@ -87,7 +89,7 @@ export class CompanyController {
     file: Express.Multer.File,
   ) {
     const clientId = req?.user?.id;
-    const uploadedFile = await this.uploadService.upload(file);
+    const uploadedFile = await this.uploadService.upload(file, 'companies');
     return await this.companyService.updateCompanyLogo(uploadedFile, clientId);
   }
 

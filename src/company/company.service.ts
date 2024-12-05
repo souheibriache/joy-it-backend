@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   FindOptionsOrder,
   FindOptionsRelations,
@@ -32,9 +36,15 @@ export class CompanyService {
     uploadedLogo: CloudinaryResponse,
     client: Client,
   ) {
+    const existingCompany = await this.companyRepository.findOne({
+      where: { client: { id: client.id } },
+    });
+    if (existingCompany)
+      throw new BadRequestException('Client already has a company!');
+
     const logo: Media = await this.mediaService.create({
       fullUrl: uploadedLogo.url,
-      name: uploadedLogo.name,
+      name: uploadedLogo.display_name,
       originalName: uploadedLogo.original_filename,
       placeHolder: createCompanyDto.name,
       resourceType: uploadedLogo.resource_type,
@@ -64,7 +74,7 @@ export class CompanyService {
     const company = await this.findOne({ client: { id: clientId } });
     const logo: Media = await this.mediaService.create({
       fullUrl: uploadedLogo.url,
-      name: uploadedLogo.name,
+      name: uploadedLogo.display_name,
       originalName: uploadedLogo.original_filename,
       placeHolder: company.name,
       resourceType: uploadedLogo.resource_type,

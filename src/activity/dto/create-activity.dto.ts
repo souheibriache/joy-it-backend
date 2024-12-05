@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsNotEmpty,
@@ -53,8 +54,9 @@ export class CreateActivityDto {
   @Transform(({ value }) => Number(value))
   creditCost: number;
 
-  @ApiProperty({ type: Number })
+  @ApiProperty({ type: Number, default: 0 })
   @IsNumber()
+  @IsOptional()
   @Transform(({ value }) => Number(value))
   mainImageIndex: number;
 
@@ -66,4 +68,8 @@ export class CreateActivityDto {
   @ApiProperty({ isArray: true, enum: ActivityType })
   @IsEnum(ActivityType, { each: true })
   categories: ActivityType[];
+
+  @ApiProperty({ isArray: true, default: [] })
+  @IsArray()
+  keyWords: string[];
 }

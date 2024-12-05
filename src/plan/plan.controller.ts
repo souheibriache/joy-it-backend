@@ -12,9 +12,10 @@ import { PlanService } from './plan.service';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 import { SuperUserGuard } from 'src/auth/guards/super-user.guard';
 import { CreatePlanDto, UpdatePlanDto } from './dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@Controller('plan')
+@Controller('plans')
+@ApiTags('plans')
 export class PlanController {
   constructor(private readonly planService: PlanService) {}
 

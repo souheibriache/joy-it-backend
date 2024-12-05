@@ -46,7 +46,7 @@ export class ActivityService {
         isMain: index === createActivityDto.mainImageIndex,
         activity: savedActivity,
         originalName: image.original_filename,
-        name: image.name,
+        name: image.display_name,
         placeHolder: image.placeholder,
         resourceType: image.resource_type,
       });
@@ -125,7 +125,7 @@ export class ActivityService {
         isMain: index === updateActivityImagesDto.mainImageIndex,
         activity: activity,
         originalName: image.original_filename,
-        name: image.name,
+        name: image.display_name,
         placeHolder: image.placeholder,
         resourceType: image.resource_type,
       });

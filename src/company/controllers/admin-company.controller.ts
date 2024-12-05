@@ -13,9 +13,10 @@ import { SuperUserGuard } from 'src/auth/guards/super-user.guard';
 import { CompanyOptionsDto, UpdateCompanyDto } from '../dto';
 import { ICompany } from '../interfaces';
 import { PageDto } from '@app/pagination/dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@Controller('admin/company')
+@Controller('admin/companies')
+@ApiTags('Admin', 'Companies')
 @UseGuards(AccessTokenGuard, SuperUserGuard)
 @ApiBearerAuth()
 export class CompanyAdminController {
