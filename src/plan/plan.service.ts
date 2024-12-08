@@ -8,7 +8,7 @@ import {
   In,
   Repository,
 } from 'typeorm';
-import { CreatePlanDto } from './dto';
+import { CreatePlanDto, UpdatePlanDto } from './dto';
 import { Activity } from 'src/activity/entities';
 import { ActivityService } from 'src/activity/activity.service';
 
@@ -50,21 +50,38 @@ export class PlanService {
     return await this.planRepository.find({ where, relations, order });
   }
 
-  async update(planId: string, updatePlanDto) {
+  async update(planId: string, updatePlanDto: UpdatePlanDto) {
     const plan = await this.findOne({ id: planId });
+    if (!plan) {
+      throw new NotFoundException('Plan not found');
+    }
 
     const { activities: activitiesIds, ...rest } = updatePlanDto;
 
-    const updateObject = { ...rest };
-    let activities = [];
+    // Update basic properties of the plan
+    await this.planRepository.update(plan.id, {
+      ...rest,
+    });
+
+    const updatedPlan = await this.findOne(
+      { id: plan.id },
+      { activities: true },
+    );
+
+    // Handle many-to-many relationship for activities
     if (activitiesIds) {
-      activities = await this.activityService.find({ id: In(activitiesIds) });
-      updateObject.activities = activities;
+      const activities = await this.activityService.find({
+        id: In(activitiesIds),
+      });
+      if (activities.length !== activitiesIds.length) {
+        throw new NotFoundException('Some activities are not found!');
+      }
+      updatedPlan.activities = activities; // Update activities relation
+      await this.planRepository.save(updatedPlan); // Save the updated relation
     }
 
-    await this.planRepository.update(plan.id, { ...rest, updateObject });
-
-    return await this.findOne({ id: plan.id });
+    // Return updated plan with relations
+    return this.findOne({ id: plan.id });
   }
 
   async delete(planId: string) {

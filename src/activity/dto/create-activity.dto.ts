@@ -67,7 +67,7 @@ export class CreateActivityDto {
 
   @ApiProperty({ isArray: true, enum: ActivityType })
   @IsEnum(ActivityType, { each: true })
-  categories: ActivityType[];
+  types: ActivityType[];
 
   @ApiProperty({ isArray: true, default: [] })
   @IsArray()

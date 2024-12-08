@@ -44,7 +44,7 @@ export class Activity extends BaseEntity {
   creditCost: number;
 
   @OneToMany(() => ActivityImage, (image: ActivityImage) => image.activity, {
-    onDelete: 'CASCADE',
+    cascade: true,
   })
   images: ActivityImage[];
 }

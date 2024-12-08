@@ -125,6 +125,16 @@ export class ActivityController {
     return await this.activityService.delete(activityId);
   }
 
+  @Delete(':activityId/:imageId')
+  @UseGuards(AccessTokenGuard, SuperUserGuard)
+  @ApiBearerAuth()
+  async deleteImage(
+    @Param('activityId') activityId: string,
+    @Param('imageId') imageId: string,
+  ) {
+    return await this.activityService.deleteImage(activityId, imageId);
+  }
+
   @Get(':activityId')
   async findOneById(@Param('activityId') activityId: string) {
     return await this.activityService.findOne(

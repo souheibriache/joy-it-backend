@@ -21,23 +21,24 @@ import { CompanyFilterDto } from './dto/company-filter.dto';
 import { Media } from '@app/media/entities';
 import { CloudinaryResponse } from '@app/upload/types/cloudinary-response.type';
 import { MediaService } from '@app/media';
+import { ClientService } from 'src/client/client.service';
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
-
     private readonly mediaService: MediaService,
+    private readonly clientService: ClientService,
   ) {}
 
   async create(
     createCompanyDto: CreateCompanyDto,
     uploadedLogo: CloudinaryResponse,
-    client: Client,
+    clientId: string,
   ) {
     const existingCompany = await this.companyRepository.findOne({
-      where: { client: { id: client.id } },
+      where: { client: { id: clientId } },
     });
     if (existingCompany)
       throw new BadRequestException('Client already has a company!');
@@ -49,6 +50,8 @@ export class CompanyService {
       placeHolder: createCompanyDto.name,
       resourceType: uploadedLogo.resource_type,
     });
+
+    const client = await this.clientService.findOne({ id: clientId });
 
     const company = this.companyRepository.create({
       ...createCompanyDto,
@@ -144,7 +147,7 @@ export class CompanyService {
     const relations: FindOptionsRelations<Company> = {
       client: true,
       logo: true,
-      subscription: true,
+      subscription: { plan: true },
     };
 
     const [items, itemCount] = await this.companyRepository.findAndCount({

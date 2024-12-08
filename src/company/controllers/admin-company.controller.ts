@@ -33,7 +33,7 @@ export class CompanyAdminController {
   async getCompanyById(@Param('companyId') companyId: string) {
     return await this.companyService.findOne(
       { id: companyId },
-      { client: true, logo: true, subscription: true },
+      { client: true, logo: true, subscription: { plan: true } },
     );
   }
 

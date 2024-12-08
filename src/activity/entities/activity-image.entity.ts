@@ -8,7 +8,8 @@ export class ActivityImage extends Media {
   isMain: boolean;
 
   @ManyToOne(() => Activity, (activity: Activity) => activity.images, {
-    cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   @JoinColumn({ referencedColumnName: 'id', name: 'activity_id' })
   activity: Activity;

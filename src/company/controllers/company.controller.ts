@@ -52,13 +52,13 @@ export class CompanyController {
     )
     file: Express.Multer.File,
   ) {
-    const client = req.user;
+    const clientId = req?.user?.id;
     const uploadedFile = await this.uploadService.upload(file, 'companies');
     console.log({ uploadedFile });
     return await this.companyService.create(
       createCompanyDto,
       uploadedFile,
-      client as Client,
+      clientId,
     );
   }
 

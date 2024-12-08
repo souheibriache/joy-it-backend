@@ -116,22 +116,47 @@ export class ActivityService {
     updateActivityImagesDto: UpdateActivityImagesDto,
     uploadedFiles: CloudinaryResponse[],
   ) {
-    const activity = await this.findOne({ id });
+    const activity = await this.findOne({ id }, { images: true });
 
-    activity.images = [];
-    uploadedFiles.forEach(async (image, index) => {
-      const activityImage = this.activityImageRepository.create({
+    // Ensure retainedImageIds is an array of strings
+    const retainedImageIds = Array.isArray(
+      updateActivityImagesDto.retainedImageIds,
+    )
+      ? updateActivityImagesDto.retainedImageIds
+      : [updateActivityImagesDto.retainedImageIds].filter(Boolean);
+
+    const retainedImages = activity?.images.filter((image) =>
+      retainedImageIds.includes(image.id),
+    );
+
+    const imagesToDelete = activity.images.filter(
+      (image) => !retainedImageIds.includes(image.id),
+    );
+    await this.activityImageRepository.remove(imagesToDelete);
+
+    const newImages = uploadedFiles.map((image, index) =>
+      this.activityImageRepository.create({
         fullUrl: image.url,
-        isMain: index === updateActivityImagesDto.mainImageIndex,
+        isMain: false,
         activity: activity,
         originalName: image.original_filename,
         name: image.display_name,
         placeHolder: image.placeholder,
         resourceType: image.resource_type,
-      });
-      const savedImage = await this.activityImageRepository.save(activityImage);
-      activity.images.push(savedImage);
+      }),
+    );
+
+    const allImages = [...retainedImages, ...newImages];
+
+    allImages.forEach((image, index) => {
+      image.isMain = index === updateActivityImagesDto.mainImageIndex;
     });
+
+    if (newImages.length > 0) {
+      await this.activityImageRepository.save(newImages);
+    }
+
+    activity.images = allImages;
 
     return await activity.save();
   }
@@ -139,7 +164,15 @@ export class ActivityService {
   async delete(id: string) {
     await this.findOne({ id });
 
-    await this.activityImageRepository.delete(id);
+    await this.activityRepository.delete(id);
+
+    return true;
+  }
+
+  async deleteImage(id: string, imageId: string) {
+    await this.findOne({ id, images: { id: imageId } });
+
+    await this.activityImageRepository.delete(imageId);
 
     return true;
   }
@@ -164,10 +197,8 @@ export class ActivityService {
     } = activityOptionsDto;
     const { search, types, isAvailable, durationMax, durationMin } = query;
 
-    // Create a query builder
     const queryBuilder = this.activityRepository.createQueryBuilder('activity');
 
-    // Handle search condition (match name, keyWords, city, address, postalCode)
     if (search) {
       queryBuilder.andWhere(
         new Brackets((qb) => {
@@ -179,52 +210,47 @@ export class ActivityService {
             .orWhere('activity.postalCode ILIKE :search', {
               search: `%${search}%`,
             })
-            .orWhere(':search = ANY(activity.keyWords)', { search });
+            .orWhere(':search ILIKE ANY(activity.keyWords)', {
+              search: `%${search}%`,
+            });
         }),
       );
     }
 
-    // Handle types condition
     if (types) {
       queryBuilder.andWhere('activity.types && :types', { types });
     }
 
-    // Handle isAvailable condition
     if (isAvailable === true || isAvailable === false) {
       queryBuilder.andWhere('activity.isAvailable = :isAvailable', {
         isAvailable,
       });
     }
 
-    // Handle durationMin and durationMax
     if (durationMin !== undefined) {
       queryBuilder.andWhere('activity.duration >= :durationMin', {
         durationMin,
       });
     }
+
     if (durationMax !== undefined) {
       queryBuilder.andWhere('activity.duration <= :durationMax', {
         durationMax,
       });
     }
 
-    // Add relations
     queryBuilder.leftJoinAndSelect('activity.images', 'images');
 
-    // Add sorting
     if (sort) {
       Object.entries(sort).forEach(([field, order]) => {
         queryBuilder.addOrderBy(`activity.${field}`, order as 'ASC' | 'DESC');
       });
     }
 
-    // Pagination
     queryBuilder.skip(skip).take(take);
 
-    // Execute query
     const [items, itemCount] = await queryBuilder.getManyAndCount();
 
-    // Generate pagination metadata
     const pageMetaDto = new PageMetaDto({
       itemCount,
       pageOptionsDto: activityOptionsDto,

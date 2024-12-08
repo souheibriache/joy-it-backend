@@ -35,7 +35,7 @@ export class PlanController {
 
   @Get()
   async getAll() {
-    return await this.planService.find({}, { activities: true });
+    return await this.planService.find({}, { activities: { images: true } });
   }
 
   @Get('/:planId')

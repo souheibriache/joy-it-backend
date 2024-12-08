@@ -15,6 +15,7 @@ import { MediaModule } from '@app/media';
 import { ScheduleModule } from './schedule/schedule.module';
 import { APP_FILTER } from '@nestjs/core';
 import { ValidationErrorFilter } from '@app/common/utils/error-handler/validation-error-filter';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ValidationErrorFilter } from '@app/common/utils/error-handler/validatio
     ActivityModule,
     MediaModule,
     ScheduleModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [
