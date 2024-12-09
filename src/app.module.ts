@@ -13,9 +13,10 @@ import { PlanModule } from './plan/plan.module';
 import { ActivityModule } from './activity/activity.module';
 import { MediaModule } from '@app/media';
 import { ScheduleModule } from './schedule/schedule.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ValidationErrorFilter } from '@app/common/utils/error-handler/validation-error-filter';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { MorganInterceptor, MorganModule } from 'nest-morgan';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     MediaModule,
     ScheduleModule,
     AnalyticsModule,
+    MorganModule,
   ],
   controllers: [AppController],
   providers: [

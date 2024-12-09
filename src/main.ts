@@ -5,12 +5,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { ValidationErrorException } from '@app/common/utils/error-handler';
 import { setupSwagger } from '@app/common/utils/swagger';
+import * as morgan from 'morgan';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(compression());
   app.enableCors();
+
+  app.use(morgan('dev'));
 
   const prefixBaseApi = 'api/v1';
   app.setGlobalPrefix(prefixBaseApi);
