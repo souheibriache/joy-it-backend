@@ -11,7 +11,7 @@ export const setupSwagger = (app: INestApplication): void => {
   if (!isDevelopment) return;
 
   const config = new DocumentBuilder()
-    .setTitle('Glowrita API')
+    .setTitle('Joy-it API')
     .setDescription('The Glowrita API')
     .setVersion('1.0')
     .addBearerAuth()
