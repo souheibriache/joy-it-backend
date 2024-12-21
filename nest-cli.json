@@ -69,6 +69,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/media/tsconfig.lib.json"
       }
+    },
+    "mailer": {
+      "type": "library",
+      "root": "libs/mailer",
+      "entryFile": "index",
+      "sourceRoot": "libs/mailer/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/mailer/tsconfig.lib.json"
+      }
     }
   }
 }

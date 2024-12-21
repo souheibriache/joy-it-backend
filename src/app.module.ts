@@ -17,6 +17,8 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ValidationErrorFilter } from '@app/common/utils/error-handler/validation-error-filter';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { MorganInterceptor, MorganModule } from 'nest-morgan';
+import { ArticleModule } from './article/article.module';
+import { MailerModule } from '@app/mailer';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { MorganInterceptor, MorganModule } from 'nest-morgan';
     ScheduleModule,
     AnalyticsModule,
     MorganModule,
+    ArticleModule,
+    MailerModule,
   ],
   controllers: [AppController],
   providers: [

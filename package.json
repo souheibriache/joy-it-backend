@@ -28,6 +28,7 @@
     "@nestjs/platform-express": "^10.4.12",
     "@nestjs/swagger": "^8.0.7",
     "@nestjs/typeorm": "^10.0.2",
+    "@sendgrid/mail": "^8.1.4",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
     "backend": "file:",
@@ -97,7 +98,8 @@
       "^@app/config(|/.*)$": "<rootDir>/libs/config/src/$1",
       "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
       "^@app/base-entity(|/.*)$": "<rootDir>/libs/base-entity/src/$1",
-      "^@app/media(|/.*)$": "<rootDir>/libs/media/src/$1"
+      "^@app/media(|/.*)$": "<rootDir>/libs/media/src/$1",
+      "^@app/mailer(|/.*)$": "<rootDir>/libs/mailer/src/$1"
     }
   }
 }

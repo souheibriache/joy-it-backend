@@ -24,6 +24,8 @@
     "@app/base-entity/(.*)": "<rootDir>/../libs/base-entity/src/$1",
     "@app/base-entity": "<rootDir>/../libs/base-entity/src",
     "@app/media/(.*)": "<rootDir>/../libs/media/src/$1",
-    "@app/media": "<rootDir>/../libs/media/src"
+    "@app/media": "<rootDir>/../libs/media/src",
+    "@app/mailer/(.*)": "<rootDir>/../libs/mailer/src/$1",
+    "@app/mailer": "<rootDir>/../libs/mailer/src"
   }
 }
