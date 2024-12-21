@@ -13,6 +13,7 @@ import { LoginDto, RefreshTokenDto } from './dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { VerifyAccountDto } from './dto/verify-account-dto';
 
 @Controller('accounts')
 export class AuthController {
@@ -31,6 +32,11 @@ export class AuthController {
   @Post('/admin/login')
   async adminLogin(@Body() loginDto: LoginDto) {
     return await this.authService.loginAdmin(loginDto);
+  }
+
+  @Post('/verify-account')
+  async verifyAccount(@Body() verifyAccountDto: VerifyAccountDto) {
+    return await this.authService.verifyAccount(verifyAccountDto);
   }
 
   @Post('refresh-token')

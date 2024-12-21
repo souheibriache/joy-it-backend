@@ -59,6 +59,12 @@
       ],
       "@app/media/*": [
         "libs/media/src/*"
+      ],
+      "@app/mailer": [
+        "libs/mailer/src"
+      ],
+      "@app/mailer/*": [
+        "libs/mailer/src/*"
       ]
     }
   }

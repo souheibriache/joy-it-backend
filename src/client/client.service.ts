@@ -52,4 +52,9 @@ export class ClientService {
     await this.clientRepository.update(id, updateClientDto);
     return await this.findOne({ id });
   }
+
+  async isVerified(id: string) {
+    const user = await this.findOne({ id });
+    return user.isVerified;
+  }
 }

@@ -12,6 +12,6 @@ export class Client extends User {
   @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
   company: Company;
 
-  @Column({ type: 'boolean', name: 'is_verified', default: true })
+  @Column({ type: 'boolean', name: 'is_verified', default: false })
   isVerified: boolean;
 }

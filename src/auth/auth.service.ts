@@ -23,6 +23,10 @@ import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Payload } from './dto/payload.dto';
 import { ClientService } from 'src/client/client.service';
 import { Client } from 'src/client/entities';
+import { ConfigService } from '@app/config';
+import { MailerService } from '@app/mailer';
+import { sendEmailDto } from 'libs/mailer/dto';
+import { VerifyAccountDto } from './dto/verify-account-dto';
 
 @Injectable()
 export class AuthService {
@@ -32,12 +36,13 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly clientService: ClientService,
+    private readonly configService: ConfigService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async signup(createUserDto: SignupDto) {
     const user = await this.userService.findAll({
       email: createUserDto.email,
-      userName: createUserDto.userName,
     });
     if (user.length) throw new BadRequestException('This user already exists!');
 
@@ -45,9 +50,50 @@ export class AuthService {
 
     const hashedPassword = await this.hash(password);
 
-    await this.clientService.create({ ...rest, password: hashedPassword });
+    const createdUser = await this.clientService.create({
+      ...rest,
+      password: hashedPassword,
+    });
 
-    return true;
+    const verificationToken = await this.generateEmailVerificationToken({
+      id: createdUser.id,
+      metadata: { email: createUserDto.email },
+    });
+
+    const verificationMail: sendEmailDto = new sendEmailDto();
+    verificationMail.to = createUserDto.email;
+    verificationMail.template;
+    verificationMail.subject = 'Verification de votre address mail';
+    verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`;
+    verificationMail.customArgs = {
+      firstName: createdUser.firstName,
+      verificationToken,
+    };
+
+    await this.mailerService.sendSingle(verificationMail);
+
+    return {
+      message: 'Verifier votre boit mail',
+    };
+  }
+
+  async verifyAccount(verifyAccountDto: VerifyAccountDto) {
+    const { verificationToken } = verifyAccountDto;
+    const payload = await this.jwtService.verifyAsync(verificationToken, {
+      secret: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
+    });
+    if (!payload.sub) {
+      throw new UnprocessableEntityException('Invalid token !');
+    }
+    const user = await this.clientService.findOne({ id: payload.sub });
+
+    if (user && user.isVerified) {
+      throw new BadRequestException('Account already verified!');
+    }
+
+    user.isVerified = true;
+    await user.save();
+    return await this.authenticate(user, { isVerified: true });
   }
 
   async isValidUserName(username: string) {
@@ -259,6 +305,16 @@ export class AuthService {
     return await this.userService.findOne({
       where: { id: userId },
       select: { firstName: true, lastName: true, email: true, userName: true },
+    });
+  }
+
+  async generateEmailVerificationToken(user: UserDto): Promise<string> {
+    const payload = { sub: user.id, metadata: user.metadata };
+    const expiresIn = 10 * 60 * 1000;
+
+    return await this.jwtService.signAsync(payload, {
+      expiresIn,
+      privateKey: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
     });
   }
 }
