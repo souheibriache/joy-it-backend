@@ -9,10 +9,11 @@ export declare type AttachmentData = {
 };
 
 export class sendEmailDto {
-  to: string[];
-  subject: string;
-  content: MailContent[];
-  attachments: AttachmentData[];
-  template: string;
-  customArgs: any;
+  to?: string;
+  subject?: string;
+  text?: string;
+  content?: MailContent[];
+  attachments?: AttachmentData[];
+  template?: string;
+  customArgs?: any;
 }

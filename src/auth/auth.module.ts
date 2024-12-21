@@ -9,6 +9,7 @@ import { UserModule } from 'src/user/user.module';
 import { JwtStrategy } from './strategies';
 import { ClientModule } from 'src/client/client.module';
 import { SuperUserGuard } from './guards/super-user.guard';
+import { MailerModule } from '@app/mailer';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SuperUserGuard } from './guards/super-user.guard';
     UserModule,
     ConfigModule,
     ClientModule,
+    MailerModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
