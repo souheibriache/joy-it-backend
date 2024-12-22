@@ -1,14 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Client } from './entities';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Client } from './entities'
 import {
   FindOptionsOrder,
   FindOptionsRelations,
   FindOptionsWhere,
   Repository,
-} from 'typeorm';
-import { CreateClientDto } from './dto/create-client.dto';
-import { UpdateClientDto } from './dto/update-client.dto';
+} from 'typeorm'
+import { CreateClientDto } from './dto/create-client.dto'
+import { UpdateClientDto } from './dto/update-client.dto'
 
 @Injectable()
 export class ClientService {
@@ -18,9 +18,9 @@ export class ClientService {
   ) {}
 
   async create(createClientDto: CreateClientDto) {
-    const client = this.clientRepository.create(createClientDto);
+    const client = this.clientRepository.create(createClientDto)
 
-    return await this.clientRepository.save(client);
+    return await this.clientRepository.save(client)
   }
 
   async find(
@@ -28,7 +28,7 @@ export class ClientService {
     relations?: FindOptionsRelations<Client>,
     order?: FindOptionsOrder<Client>,
   ) {
-    return await this.clientRepository.find({ where, relations, order });
+    return await this.clientRepository.find({ where, relations, order })
   }
 
   async findOne(
@@ -40,21 +40,21 @@ export class ClientService {
       where,
       relations,
       order,
-    });
-    if (!client) throw new NotFoundException('Client not found!');
+    })
+    if (!client) throw new NotFoundException('Client not found!')
 
-    return client;
+    return client
   }
 
   async update(id: string, updateClientDto: UpdateClientDto) {
-    await this.findOne({ id });
+    await this.findOne({ id })
 
-    await this.clientRepository.update(id, updateClientDto);
-    return await this.findOne({ id });
+    await this.clientRepository.update(id, updateClientDto)
+    return await this.findOne({ id })
   }
 
   async isVerified(id: string) {
-    const user = await this.findOne({ id });
-    return user.isVerified;
+    const user = await this.findOne({ id })
+    return user.isVerified
   }
 }

@@ -1,12 +1,12 @@
-import { Module } from '@nestjs/common';
-import { AnalyticsService } from './analytics.service';
-import { AnalyticsController } from './analytics.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Plan } from 'src/plan/entities';
-import { Company } from 'src/company/entities';
-import { Subscription } from 'src/subscription/entities';
-import { Schedule } from 'src/schedule/entities';
-import { Activity } from 'src/activity/entities';
+import { Module } from '@nestjs/common'
+import { AnalyticsService } from './analytics.service'
+import { AnalyticsController } from './analytics.controller'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { Plan } from 'src/plan/entities'
+import { Company } from 'src/company/entities'
+import { Subscription } from 'src/subscription/entities'
+import { Schedule } from 'src/schedule/entities'
+import { Activity } from 'src/activity/entities'
 
 @Module({
   imports: [

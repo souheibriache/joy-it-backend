@@ -4,26 +4,22 @@ import {
   FileTypeValidator,
   Get,
   MaxFileSizeValidator,
-  Param,
   ParseFilePipe,
   Post,
   Put,
-  Query,
-  Req,
   Request,
   UploadedFile,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { MEDIA_TYPES } from '@app/upload/constants/file.types';
-import { UploadService } from '@app/upload';
-import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
-import { Client } from 'src/client/entities';
-import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.dto';
-import { CompanyService } from '../company.service';
-import { CreateCompanyDto, UpdateCompanyDto } from '../dto';
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger'
+import { MEDIA_TYPES } from '@app/upload/constants/file.types'
+import { UploadService } from '@app/upload'
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard'
+import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.dto'
+import { CompanyService } from '../company.service'
+import { CreateCompanyDto, UpdateCompanyDto } from '../dto'
 
 @Controller('companies')
 @ApiTags('Companies')
@@ -52,14 +48,14 @@ export class CompanyController {
     )
     file: Express.Multer.File,
   ) {
-    const clientId = req?.user?.id;
-    const uploadedFile = await this.uploadService.upload(file, 'companies');
-    console.log({ uploadedFile });
+    const clientId = req?.user?.id
+    const uploadedFile = await this.uploadService.upload(file, 'companies')
+    console.log({ uploadedFile })
     return await this.companyService.create(
       createCompanyDto,
       uploadedFile,
       clientId,
-    );
+    )
   }
 
   @Put()
@@ -67,10 +63,10 @@ export class CompanyController {
     @Body() updateCompanyDto: UpdateCompanyDto,
     @Request() req: IRequestWithUser,
   ) {
-    const clientId = req?.user?.id;
+    const clientId = req?.user?.id
     return await this.companyService.update(updateCompanyDto, {
       client: { id: clientId },
-    });
+    })
   }
 
   @Put('/logo')
@@ -88,17 +84,17 @@ export class CompanyController {
     )
     file: Express.Multer.File,
   ) {
-    const clientId = req?.user?.id;
-    const uploadedFile = await this.uploadService.upload(file, 'companies');
-    return await this.companyService.updateCompanyLogo(uploadedFile, clientId);
+    const clientId = req?.user?.id
+    const uploadedFile = await this.uploadService.upload(file, 'companies')
+    return await this.companyService.updateCompanyLogo(uploadedFile, clientId)
   }
 
   @Get('/my-company')
   async getClientCompany(@Request() req: IRequestWithUser) {
-    const clientId = req?.user?.id;
+    const clientId = req?.user?.id
     return await this.companyService.findOne(
       { client: { id: clientId } },
       { client: true, logo: true, subscription: true },
-    );
+    )
   }
 }

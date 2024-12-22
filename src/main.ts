@@ -1,22 +1,22 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import * as compression from 'compression';
-import { ValidationPipe } from '@nestjs/common';
-import { ValidationError } from 'class-validator';
-import { ValidationErrorException } from '@app/common/utils/error-handler';
-import { setupSwagger } from '@app/common/utils/swagger';
-import * as morgan from 'morgan';
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module'
+import * as compression from 'compression'
+import { ValidationPipe } from '@nestjs/common'
+import { ValidationError } from 'class-validator'
+import { ValidationErrorException } from '@app/common/utils/error-handler'
+import { setupSwagger } from '@app/common/utils/swagger'
+import * as morgan from 'morgan'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule)
 
-  app.use(compression());
-  app.enableCors();
+  app.use(compression())
+  app.enableCors()
 
-  app.use(morgan('dev'));
+  app.use(morgan('dev'))
 
-  const prefixBaseApi = 'api/v1';
-  app.setGlobalPrefix(prefixBaseApi);
+  const prefixBaseApi = 'api/v1'
+  app.setGlobalPrefix(prefixBaseApi)
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -25,13 +25,13 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       stopAtFirstError: true,
       exceptionFactory: (errors: ValidationError[]) => {
-        return new ValidationErrorException(errors);
+        return new ValidationErrorException(errors)
       },
     }),
-  );
+  )
 
-  setupSwagger(app);
+  setupSwagger(app)
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000)
 }
-bootstrap();
+bootstrap()

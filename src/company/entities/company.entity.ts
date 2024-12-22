@@ -1,45 +1,45 @@
-import { BaseEntity } from '@app/base-entity';
-import { Media } from '@app/media/entities';
-import { Client } from 'src/client/entities';
-import { Subscription } from 'src/subscription/entities';
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import { BaseEntity } from '@app/base-entity'
+import { Media } from '@app/media/entities'
+import { Client } from 'src/client/entities'
+import { Subscription } from 'src/subscription/entities'
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm'
 
 @Entity('company')
 export class Company extends BaseEntity {
   @OneToOne(() => Client, (client: Client) => client.company, {
     onDelete: 'CASCADE',
   })
-  client: Client;
+  client: Client
 
   @Column()
-  name: string;
+  name: string
 
   @Column()
-  address: string;
+  address: string
 
   @Column({ name: 'postal_code' })
-  postalCode: string;
+  postalCode: string
 
   @Column()
-  city: string;
+  city: string
 
   @Column({ name: 'phone_number' })
-  phoneNumber: string;
+  phoneNumber: string
 
   @Column({ name: 'employees_number', type: 'int' })
-  employeesNumber: number;
+  employeesNumber: number
 
   @OneToOne(() => Media)
   @JoinColumn({ name: 'logo_id', referencedColumnName: 'id' })
-  logo: Media;
+  logo: Media
 
   @ManyToOne(() => Subscription, { nullable: true })
   @JoinColumn({ referencedColumnName: 'id', name: 'subscription_id' })
-  subscription: Subscription;
+  subscription: Subscription
 
   @Column({ type: 'int', default: 0 })
-  credit: number;
+  credit: number
 
   @Column({ type: 'boolean', name: 'is_verified', default: false })
-  isVerified: boolean;
+  isVerified: boolean
 }

@@ -3,30 +3,31 @@ import {
   ForbiddenException,
   Injectable,
   UnprocessableEntityException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
-import { RefreshToken } from './entities/refresh-token.entity';
-import { SignupDto } from './dto/sign-up.dto';
-import * as bcrypt from 'bcrypt';
-import { User } from 'src/user/entities';
-import { UserService } from 'src/user/user.service';
-import { LoginDto, LoginUserPayload, RefreshTokenDto } from './dto';
-import { MetadataDto } from './dto/metadata.dto';
-import { UserDto } from './dto/user.dto';
-import { IRefreshToken } from './interfaces';
+} from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { FindOptionsWhere, Repository } from 'typeorm'
+import { RefreshToken } from './entities/refresh-token.entity'
+import { SignupDto } from './dto/sign-up.dto'
+import * as bcrypt from 'bcrypt'
+import { User } from 'src/user/entities'
+import { UserService } from 'src/user/user.service'
+import { LoginDto, LoginUserPayload, RefreshTokenDto } from './dto'
+import { MetadataDto } from './dto/metadata.dto'
+import { UserDto } from './dto/user.dto'
+import { IRefreshToken } from './interfaces'
 import {
   ACCESS_TOKEN_TTL,
   REFRESH_TOKEN_TTL,
-} from '@app/common/utils/constants/jwt-ttl';
-import { JwtService, TokenExpiredError } from '@nestjs/jwt';
-import { Payload } from './dto/payload.dto';
-import { ClientService } from 'src/client/client.service';
-import { Client } from 'src/client/entities';
-import { ConfigService } from '@app/config';
-import { MailerService } from '@app/mailer';
-import { sendEmailDto } from 'libs/mailer/dto';
-import { VerifyAccountDto } from './dto/verify-account-dto';
+} from '@app/common/utils/constants/jwt-ttl'
+import { JwtService, TokenExpiredError } from '@nestjs/jwt'
+import { Payload } from './dto/payload.dto'
+import { ClientService } from 'src/client/client.service'
+import { Client } from 'src/client/entities'
+import { ConfigService } from '@app/config'
+import { MailerService } from '@app/mailer'
+import { sendEmailDto } from 'libs/mailer/dto'
+import { VerifyAccountDto } from './dto/verify-account-dto'
+import { ResendVerificationEmailDto } from './dto/resend-activation-email.dto'
 
 @Injectable()
 export class AuthService {
@@ -43,278 +44,296 @@ export class AuthService {
   async signup(createUserDto: SignupDto) {
     const user = await this.userService.findAll({
       email: createUserDto.email,
-    });
-    if (user.length) throw new BadRequestException('This user already exists!');
+    })
+    if (user.length) throw new BadRequestException('This user already exists!')
 
-    const { password, ...rest } = createUserDto;
+    const { password, ...rest } = createUserDto
 
-    const hashedPassword = await this.hash(password);
+    const hashedPassword = await this.hash(password)
 
     const createdUser = await this.clientService.create({
       ...rest,
       password: hashedPassword,
-    });
+    })
 
-    const verificationToken = await this.generateEmailVerificationToken({
-      id: createdUser.id,
-      metadata: { email: createUserDto.email },
-    });
-
-    const verificationMail: sendEmailDto = new sendEmailDto();
-    verificationMail.to = createUserDto.email;
-    verificationMail.template;
-    verificationMail.subject = 'Verification de votre address mail';
-    verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`;
-    verificationMail.customArgs = {
-      firstName: createdUser.firstName,
-      verificationToken,
-    };
-
-    await this.mailerService.sendSingle(verificationMail);
+    await this.sendVerificationEmail(createdUser)
 
     return {
       message: 'Verifier votre boit mail',
-    };
+    }
   }
 
   async verifyAccount(verifyAccountDto: VerifyAccountDto) {
-    const { verificationToken } = verifyAccountDto;
+    const { verificationToken } = verifyAccountDto
     const payload = await this.jwtService.verifyAsync(verificationToken, {
       secret: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
-    });
+    })
     if (!payload.sub) {
-      throw new UnprocessableEntityException('Invalid token !');
+      throw new UnprocessableEntityException('Invalid token !')
     }
-    const user = await this.clientService.findOne({ id: payload.sub });
+    const user = await this.clientService.findOne({ id: payload.sub })
 
     if (user && user.isVerified) {
-      throw new BadRequestException('Account already verified!');
+      throw new BadRequestException('Account already verified!')
     }
 
-    user.isVerified = true;
-    await user.save();
-    return await this.authenticate(user, { isVerified: true });
+    user.isVerified = true
+    await user.save()
+    return await this.authenticate(user, { isVerified: true })
+  }
+
+  async sendVerificationEmail(client: Client) {
+    const verificationToken = await this.generateEmailVerificationToken({
+      id: client.id,
+      metadata: { email: client.email },
+    })
+
+    const verificationMail: sendEmailDto = new sendEmailDto()
+    verificationMail.to = client.email
+    verificationMail.template
+    verificationMail.subject = 'Verification de votre address mail'
+    verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`
+    verificationMail.customArgs = {
+      firstName: client.firstName,
+      verificationToken,
+    }
+
+    await this.mailerService.sendSingle(verificationMail)
+  }
+
+  async resendVerificationEmail(input: ResendVerificationEmailDto) {
+    const { email } = input
+    const user = await this.clientService.findOne({ email })
+
+    if (user.isVerified)
+      throw new BadRequestException('Account already verified!')
+
+    await this.sendVerificationEmail(user)
+
+    return {
+      message: 'Verifier votre boit mail',
+    }
   }
 
   async isValidUserName(username: string) {
     const users = await this.userService.findAll({
       userName: username.trim().toLowerCase(),
-    });
-    if (users.length > 0) throw new BadRequestException('Invalid username');
-    return true;
+    })
+    if (users.length > 0) throw new BadRequestException('Invalid username')
+    return true
   }
 
   async generageUsername(firstName: string, lastName: string, count) {
-    let username = firstName + '.' + lastName;
+    const username = firstName + '.' + lastName
     if (count) {
-      count++;
+      count++
     } else {
-      count = 1;
+      count = 1
     }
 
-    const users = await this.userService.findAll({ userName: username });
-    if (users) return this.generageUsername(firstName, lastName, count);
-    else return username;
+    const users = await this.userService.findAll({ userName: username })
+    if (users) return this.generageUsername(firstName, lastName, count)
+    else return username
   }
 
   async loginAdmin(loginDto: LoginDto) {
-    const { login, password } = loginDto;
+    const { login, password } = loginDto
 
-    let where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = [
+    const where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = [
       { email: login, isSuperUser: true },
       { userName: login, isSuperUser: true },
-    ];
+    ]
 
     const user = await this.userService.findOne({
       select: { password: true, id: true, email: true, userName: true },
       where: where,
-    });
+    })
 
-    if (!user) throw new ForbiddenException('Wrong credintials');
+    if (!user) throw new ForbiddenException('Wrong credintials')
 
-    const isValidPassword = await this.compare(password, user.password);
+    const isValidPassword = await this.compare(password, user.password)
 
-    if (!isValidPassword) throw new ForbiddenException('Wrong credintials');
+    if (!isValidPassword) throw new ForbiddenException('Wrong credintials')
 
-    return await this.authenticate(user, {});
+    return await this.authenticate(user, {})
   }
 
   async login(loginDto: LoginDto) {
-    const { login, password } = loginDto;
+    const { login, password } = loginDto
 
-    let where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = [
+    const where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = [
       { email: login },
       { userName: login },
-    ];
+    ]
 
     const user = await this.userService.findOne({
       select: { password: true, id: true, email: true, userName: true },
       where: where,
-    });
+    })
 
-    if (!user) throw new ForbiddenException('Wrong credintials');
+    if (!user) throw new ForbiddenException('Wrong credintials')
 
-    const isValidPassword = await this.compare(password, user.password);
+    const isValidPassword = await this.compare(password, user.password)
 
-    if (!isValidPassword) throw new ForbiddenException('Wrong credintials');
+    if (!isValidPassword) throw new ForbiddenException('Wrong credintials')
 
-    const payloadMetaData = await this.getClientMetaData(user.id);
+    const payloadMetaData = await this.getClientMetaData(user.id)
 
-    return await this.authenticate(user, payloadMetaData);
+    return await this.authenticate(user, payloadMetaData)
   }
 
   async hash(password: string): Promise<string> {
-    const salt: string = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
+    const salt: string = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(password, salt)
+    return hashedPassword
   }
 
   async compare(password, hashedPassword) {
-    return await bcrypt.compare(password, hashedPassword);
+    return await bcrypt.compare(password, hashedPassword)
   }
 
   async authenticate(
     user: User,
     metadata: MetadataDto,
   ): Promise<LoginUserPayload> {
-    const access_token = await this.generateAccessToken({ ...user, metadata });
+    const access_token = await this.generateAccessToken({ ...user, metadata })
 
     const refresh_token = await this.generateRefreshToken({
       ...user,
       metadata,
-    });
+    })
 
-    return { access_token, refresh_token };
+    return { access_token, refresh_token }
   }
 
   async generateAccessToken(user: UserDto): Promise<string> {
-    const payload = { sub: user.id, metadata: user.metadata };
-    const expiresIn = ACCESS_TOKEN_TTL;
+    const payload = { sub: user.id, metadata: user.metadata }
+    const expiresIn = ACCESS_TOKEN_TTL
 
-    return await this.jwtService.signAsync(payload, { expiresIn });
+    return await this.jwtService.signAsync(payload, { expiresIn })
   }
 
   async generateRefreshToken(user: UserDto): Promise<string> {
-    const payload = { sub: user.id, metadata: user.metadata };
-    const expiresIn = REFRESH_TOKEN_TTL;
+    const payload = { sub: user.id, metadata: user.metadata }
+    const expiresIn = REFRESH_TOKEN_TTL
 
-    const refreshToken = await this.createRefreshToken(user, expiresIn);
+    const refreshToken = await this.createRefreshToken(user, expiresIn)
     const token = await this.jwtService.signAsync(
       { ...payload, jwtId: refreshToken.id },
       { expiresIn },
-    );
+    )
 
-    return token;
+    return token
   }
 
   async createRefreshToken(
     user: Pick<User, 'id'>,
     ttl: number,
   ): Promise<IRefreshToken> {
-    const expirationDate = new Date();
-    expirationDate.setTime(expirationDate.getTime() + ttl);
+    const expirationDate = new Date()
+    expirationDate.setTime(expirationDate.getTime() + ttl)
 
     const refreshToken = this.refreshTokenRepository.create({
       user: user,
       expires: expirationDate,
-    });
-    return await this.refreshTokenRepository.save(refreshToken);
+    })
+    return await this.refreshTokenRepository.save(refreshToken)
   }
 
   async verifyToken(token: string): Promise<Payload | undefined> {
     try {
-      return await this.jwtService.verifyAsync(token);
+      return await this.jwtService.verifyAsync(token)
     } catch {
-      return;
+      return
     }
   }
 
   async refreshToken(input: RefreshTokenDto) {
-    const { refreshToken } = input;
-    const { user } = await this.resolveRefreshToken(refreshToken);
+    const { refreshToken } = input
+    const { user } = await this.resolveRefreshToken(refreshToken)
 
-    const metadata = await this.getClientMetaData(user.id);
+    const metadata = await this.getClientMetaData(user.id)
 
     const accessToken = await this.generateAccessToken({
       ...user,
       metadata,
-    });
+    })
 
     return {
       access_token: accessToken,
-    };
+    }
   }
 
   async resolveRefreshToken(encoded: string) {
     try {
-      const payload = await this.jwtService.verify(encoded);
+      const payload = await this.jwtService.verify(encoded)
       if (!payload.sub || !payload.jwtId) {
-        throw new UnprocessableEntityException('Invalid refresh token !');
+        throw new UnprocessableEntityException('Invalid refresh token !')
       }
 
       const refreshToken = await this.refreshTokenRepository.findOne({
         where: {
           id: payload.jwtId,
         },
-      });
+      })
 
       if (!refreshToken) {
-        throw new UnprocessableEntityException('Refresh token not found.');
+        throw new UnprocessableEntityException('Refresh token not found.')
       }
 
       if (refreshToken.isRevoked) {
-        throw new UnprocessableEntityException('Refresh token revoked.');
+        throw new UnprocessableEntityException('Refresh token revoked.')
       }
 
-      const user = await this.userService.getOneById(payload.sub);
+      const user = await this.userService.getOneById(payload.sub)
 
       if (!user) {
-        throw new UnprocessableEntityException('Invalid refresh token !');
+        throw new UnprocessableEntityException('Invalid refresh token !')
       }
 
-      return { user, payload };
+      return { user, payload }
     } catch (error) {
       if (error instanceof TokenExpiredError) {
-        throw new UnprocessableEntityException('Refresh token expired');
+        throw new UnprocessableEntityException('Refresh token expired')
       } else {
-        throw new UnprocessableEntityException('Invalid refresh token !');
+        throw new UnprocessableEntityException('Invalid refresh token !')
       }
     }
   }
 
   async isSuperUser(userId: string) {
-    const user = await this.userService.findOne({ where: { id: userId } });
-    return user?.isSuperUser;
+    const user = await this.userService.findOne({ where: { id: userId } })
+    return user?.isSuperUser
   }
 
   async getClientMetaData(clientId: string) {
     const client = await this.clientService.findOne(
       { id: clientId },
       { company: { subscription: true } },
-    );
+    )
 
     return {
       companyId: client?.company?.id,
       isVerified: client.isVerified,
       isCompanyVerified: client?.company?.isVerified,
       hasSubscription: client?.company?.subscription?.id,
-    };
+    }
   }
 
   async getProfile(userId: string) {
     return await this.userService.findOne({
       where: { id: userId },
       select: { firstName: true, lastName: true, email: true, userName: true },
-    });
+    })
   }
 
   async generateEmailVerificationToken(user: UserDto): Promise<string> {
-    const payload = { sub: user.id, metadata: user.metadata };
-    const expiresIn = 10 * 60 * 1000;
+    const payload = { sub: user.id, metadata: user.metadata }
+    const expiresIn = 10 * 60 * 1000
 
     return await this.jwtService.signAsync(payload, {
       expiresIn,
       privateKey: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
-    });
+    })
   }
 }

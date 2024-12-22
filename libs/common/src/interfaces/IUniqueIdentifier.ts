@@ -1,3 +1,3 @@
 export interface IUniqueIdentifier {
-    id: string
+  id: string
 }

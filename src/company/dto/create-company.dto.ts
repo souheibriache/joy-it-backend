@@ -1,36 +1,36 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsPhoneNumber, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger'
+import { Transform } from 'class-transformer'
+import { IsNotEmpty, IsNumber, IsPhoneNumber, IsString } from 'class-validator'
 
 export class CreateCompanyDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  address: string;
+  address: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  postalCode: string;
+  postalCode: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  city: string;
+  city: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   @IsPhoneNumber()
-  phoneNumber: string;
+  phoneNumber: string
 
   @ApiProperty({ type: Number })
   @IsNumber()
   @Transform(({ value }) => Number(value))
-  employeesNumber: number;
+  employeesNumber: number
 }

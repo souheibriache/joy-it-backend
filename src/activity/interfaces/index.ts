@@ -1,1 +1,1 @@
-export * from './activity.interface';
+export * from './activity.interface'

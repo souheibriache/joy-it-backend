@@ -1,1 +1,1 @@
-export * from './extract-token-from-header.method';
+export * from './extract-token-from-header.method'

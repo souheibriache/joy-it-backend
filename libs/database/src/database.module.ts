@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@app/config';
+import { Module } from '@nestjs/common'
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
+import { ConfigModule, ConfigService } from '@app/config'
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { ConfigModule, ConfigService } from '@app/config';
           logging: false,
           migrationsTableName: 'migrations_typeorm',
           migrationsRun: true,
-        };
+        }
       },
     }),
   ],

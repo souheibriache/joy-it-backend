@@ -1,6 +1,6 @@
-import { Controller, Get, Post } from '@nestjs/common';
-import { AppService } from './app.service';
-import { MailerService } from '@app/mailer';
+import { Controller, Get } from '@nestjs/common'
+import { AppService } from './app.service'
+import { MailerService } from '@app/mailer'
 
 @Controller()
 export class AppController {
@@ -11,11 +11,11 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    return this.appService.getHello();
+    return this.appService.getHello()
   }
 
   @Get('mail')
   async sendMailTest() {
-    return this.mailerService.test();
+    return this.mailerService.test()
   }
 }
