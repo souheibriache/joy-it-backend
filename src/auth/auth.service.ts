@@ -27,6 +27,7 @@ import { ConfigService } from '@app/config';
 import { MailerService } from '@app/mailer';
 import { sendEmailDto } from 'libs/mailer/dto';
 import { VerifyAccountDto } from './dto/verify-account-dto';
+import { ResendVerificationEmailDto } from './dto/resend-activation-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -55,22 +56,7 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const verificationToken = await this.generateEmailVerificationToken({
-      id: createdUser.id,
-      metadata: { email: createUserDto.email },
-    });
-
-    const verificationMail: sendEmailDto = new sendEmailDto();
-    verificationMail.to = createUserDto.email;
-    verificationMail.template;
-    verificationMail.subject = 'Verification de votre address mail';
-    verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`;
-    verificationMail.customArgs = {
-      firstName: createdUser.firstName,
-      verificationToken,
-    };
-
-    await this.mailerService.sendSingle(verificationMail);
+    await this.sendVerificationEmail(createdUser);
 
     return {
       message: 'Verifier votre boit mail',
@@ -94,6 +80,39 @@ export class AuthService {
     user.isVerified = true;
     await user.save();
     return await this.authenticate(user, { isVerified: true });
+  }
+
+  async sendVerificationEmail(client: Client) {
+    const verificationToken = await this.generateEmailVerificationToken({
+      id: client.id,
+      metadata: { email: client.email },
+    });
+
+    const verificationMail: sendEmailDto = new sendEmailDto();
+    verificationMail.to = client.email;
+    verificationMail.template;
+    verificationMail.subject = 'Verification de votre address mail';
+    verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`;
+    verificationMail.customArgs = {
+      firstName: client.firstName,
+      verificationToken,
+    };
+
+    await this.mailerService.sendSingle(verificationMail);
+  }
+
+  async resendVerificationEmail(input: ResendVerificationEmailDto) {
+    const { email } = input;
+    const user = await this.clientService.findOne({ email });
+
+    if (user.isVerified)
+      throw new BadRequestException('Account already verified!');
+
+    await this.sendVerificationEmail(user);
+
+    return {
+      message: 'Verifier votre boit mail',
+    };
   }
 
   async isValidUserName(username: string) {

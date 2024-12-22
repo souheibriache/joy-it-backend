@@ -14,6 +14,7 @@ import { AccessTokenGuard } from './guards/access-token.guard';
 import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { VerifyAccountDto } from './dto/verify-account-dto';
+import { ResendVerificationEmailDto } from './dto/resend-activation-email.dto';
 
 @Controller('accounts')
 export class AuthController {
@@ -37,6 +38,15 @@ export class AuthController {
   @Post('/verify-account')
   async verifyAccount(@Body() verifyAccountDto: VerifyAccountDto) {
     return await this.authService.verifyAccount(verifyAccountDto);
+  }
+
+  @Post('/resend-verification-email')
+  async resendVerificationEmail(
+    @Body() resendVerificationEmailDto: ResendVerificationEmailDto,
+  ) {
+    return await this.authService.resendVerificationEmail(
+      resendVerificationEmailDto,
+    );
   }
 
   @Post('refresh-token')
