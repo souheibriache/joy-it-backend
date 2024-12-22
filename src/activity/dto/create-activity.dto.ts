@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger'
+import { Transform } from 'class-transformer'
 import {
   IsArray,
   IsBoolean,
@@ -8,68 +8,68 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-} from 'class-validator';
-import { ActivityType } from '../enums/activity-type.enum';
+} from 'class-validator'
+import { ActivityType } from '../enums/activity-type.enum'
 
 export class CreateActivityDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  description: string;
+  description: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  address: string;
+  address: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  postalCode: string;
+  postalCode: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  city: string;
+  city: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  locationUrl: string;
+  locationUrl: string
 
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
   @Transform(({ value }) => Number(value))
-  duration: number; // Duration in hours
+  duration: number // Duration in hours
 
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
   @Transform(({ value }) => Number(value))
-  creditCost: number;
+  creditCost: number
 
   @ApiProperty({ type: Number, default: 0 })
   @IsNumber()
   @IsOptional()
   @Transform(({ value }) => Number(value))
-  mainImageIndex: number;
+  mainImageIndex: number
 
   @ApiProperty({ type: Boolean, default: true })
   @IsBoolean()
   @IsOptional()
-  isAvailable: boolean;
+  isAvailable: boolean
 
   @ApiProperty({ isArray: true, enum: ActivityType })
   @IsEnum(ActivityType, { each: true })
-  types: ActivityType[];
+  types: ActivityType[]
 
   @ApiProperty({ isArray: true, default: [] })
   @IsArray()
-  keyWords: string[];
+  keyWords: string[]
 }

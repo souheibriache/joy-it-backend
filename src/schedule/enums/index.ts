@@ -1,1 +1,1 @@
-export * from './schedule-status.enum';
+export * from './schedule-status.enum'

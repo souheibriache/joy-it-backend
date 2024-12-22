@@ -1,13 +1,13 @@
-import { ResourceTypeEnum } from '../enums/resource-type.enum';
+import { ResourceTypeEnum } from '../enums/resource-type.enum'
 
 export class CreateMediaDto {
-  fullUrl: string;
+  fullUrl: string
 
-  name: string;
+  name: string
 
-  originalName: string;
+  originalName: string
 
-  placeHolder: string;
+  placeHolder: string
 
-  resourceType: ResourceTypeEnum;
+  resourceType: ResourceTypeEnum
 }

@@ -1,9 +1,9 @@
-import { Request } from 'express';
-import { Combine } from '../utils/types';
-import { User } from 'src/user/entities';
+import { Request } from 'express'
+import { Combine } from '../utils/types'
+import { User } from 'src/user/entities'
 
 type PayloadUser = {
-  user: User;
-};
+  user: User
+}
 
-export type IRequestWithUser = Combine<Request, PayloadUser>;
+export type IRequestWithUser = Combine<Request, PayloadUser>

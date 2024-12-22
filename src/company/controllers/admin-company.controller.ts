@@ -6,14 +6,14 @@ import {
   Put,
   Query,
   UseGuards,
-} from '@nestjs/common';
-import { CompanyService } from '../company.service';
-import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
-import { SuperUserGuard } from 'src/auth/guards/super-user.guard';
-import { CompanyOptionsDto, UpdateCompanyDto } from '../dto';
-import { ICompany } from '../interfaces';
-import { PageDto } from '@app/pagination/dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+} from '@nestjs/common'
+import { CompanyService } from '../company.service'
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard'
+import { SuperUserGuard } from 'src/auth/guards/super-user.guard'
+import { CompanyOptionsDto, UpdateCompanyDto } from '../dto'
+import { ICompany } from '../interfaces'
+import { PageDto } from '@app/pagination/dto'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 
 @Controller('admin/companies')
 @ApiTags('Admin', 'Companies')
@@ -26,7 +26,7 @@ export class CompanyAdminController {
   async getPaginatedCompanies(
     @Query() pageOptionsDto: CompanyOptionsDto,
   ): Promise<PageDto<ICompany>> {
-    return await this.companyService.getPaginatedCompanies(pageOptionsDto);
+    return await this.companyService.getPaginatedCompanies(pageOptionsDto)
   }
 
   @Get(':companyId')
@@ -34,12 +34,12 @@ export class CompanyAdminController {
     return await this.companyService.findOne(
       { id: companyId },
       { client: true, logo: true, subscription: { plan: true } },
-    );
+    )
   }
 
   @Put(':companyId/verify')
   async verifyCompany(@Param('companyId') companyId: string) {
-    return await this.companyService.verifyCompany(companyId);
+    return await this.companyService.verifyCompany(companyId)
   }
 
   @Put(':companyId')
@@ -49,6 +49,6 @@ export class CompanyAdminController {
   ) {
     return await this.companyService.update(updateCompanyDto, {
       id: companyId,
-    });
+    })
   }
 }

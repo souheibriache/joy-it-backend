@@ -1,6 +1,6 @@
-import { IsUnique } from '@app/pagination/decorators/is-unique-decorator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { IsUnique } from '@app/pagination/decorators/is-unique-decorator'
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { Transform } from 'class-transformer'
 import {
   IsBoolean,
   IsEnum,
@@ -8,15 +8,15 @@ import {
   IsOptional,
   IsString,
   Validate,
-} from 'class-validator';
-import { ActivityType } from '../enums/activity-type.enum';
+} from 'class-validator'
+import { ActivityType } from '../enums/activity-type.enum'
 
 export class ActivityFilterDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString({ message: 'Invalid search field' })
   @Transform(({ value }) => value.trim().toLowerCase())
-  search?: string;
+  search?: string
 
   @ApiPropertyOptional({ enum: ActivityType, isArray: true })
   @IsEnum(ActivityType, {
@@ -25,23 +25,23 @@ export class ActivityFilterDto {
   })
   @IsOptional()
   @Validate(IsUnique)
-  types?: ActivityType[];
+  types?: ActivityType[]
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   @Transform(({ value }) => Number(value))
-  durationMin?: boolean;
+  durationMin?: boolean
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   @Transform(({ value }) => Number(value))
-  durationMax?: boolean;
+  durationMax?: boolean
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean({ message: 'Invalid value' })
   @Transform(({ value }) => value === 'true')
-  isAvailable?: boolean;
+  isAvailable?: boolean
 }

@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Plan } from 'src/plan/entities';
-import { Company } from 'src/company/entities';
-import { Subscription } from 'src/subscription/entities';
-import { Schedule } from 'src/schedule/entities';
-import { Activity } from 'src/activity/entities';
-import { AnalyticsResponseDto } from './dto/analytics.dto';
-import { ScheduleStatusEnum } from 'src/schedule/enums';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { Plan } from 'src/plan/entities'
+import { Company } from 'src/company/entities'
+import { Subscription } from 'src/subscription/entities'
+import { Schedule } from 'src/schedule/entities'
+import { Activity } from 'src/activity/entities'
+import { AnalyticsResponseDto } from './dto/analytics.dto'
+import { ScheduleStatusEnum } from 'src/schedule/enums'
 
 @Injectable()
 export class AnalyticsService {
@@ -25,46 +25,46 @@ export class AnalyticsService {
   ) {}
 
   async getApplicationAnalytics(): Promise<AnalyticsResponseDto> {
-    const totalCompanies = await this.companyRepository.count();
+    const totalCompanies = await this.companyRepository.count()
     const verifiedCompanies = await this.companyRepository.count({
       where: { isVerified: true },
-    });
-    const unverifiedCompanies = totalCompanies - verifiedCompanies;
+    })
+    const unverifiedCompanies = totalCompanies - verifiedCompanies
 
-    const totalPlans = await this.planRepository.count();
+    const totalPlans = await this.planRepository.count()
 
     const subscriptions = await this.subscriptionRepository.find({
       relations: { plan: true },
-    });
+    })
 
     const subscriptionsPerPlan = subscriptions.reduce(
       (acc, sub) => {
-        const planName = sub.plan.name;
-        acc[planName] = (acc[planName] || 0) + 1;
-        return acc;
+        const planName = sub.plan.name
+        acc[planName] = (acc[planName] || 0) + 1
+        return acc
       },
       {} as Record<string, number>,
-    );
+    )
 
-    const totalSubscriptions = subscriptions.length;
+    const totalSubscriptions = subscriptions.length
 
-    const schedules = await this.scheduleRepository.find();
-    const totalSchedules = schedules.length;
+    const schedules = await this.scheduleRepository.find()
+    const totalSchedules = schedules.length
     const completedSchedules = schedules.filter(
       (s) => s.status === ScheduleStatusEnum.COMPLETED,
-    ).length;
+    ).length
     const pendingSchedules = schedules.filter(
       (s) => s.status === ScheduleStatusEnum.PENDING,
-    ).length;
+    ).length
     const canceledSchedules = schedules.filter(
       (s) => s.status === ScheduleStatusEnum.CANCELED,
-    ).length;
+    ).length
 
-    const totalActivities = await this.activityRepository.count();
+    const totalActivities = await this.activityRepository.count()
 
     const totalCreditsConsumed = schedules.reduce((total, schedule) => {
-      return total + (schedule.activity?.creditCost || 0);
-    }, 0);
+      return total + (schedule.activity?.creditCost || 0)
+    }, 0)
 
     return {
       totalCompanies,
@@ -79,6 +79,6 @@ export class AnalyticsService {
       canceledSchedules,
       totalActivities,
       totalCreditsConsumed,
-    };
+    }
   }
 }

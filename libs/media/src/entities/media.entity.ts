@@ -1,21 +1,21 @@
-import { BaseEntity } from '@app/base-entity';
-import { Column, Entity } from 'typeorm';
-import { ResourceTypeEnum } from '../enums/resource-type.enum';
+import { BaseEntity } from '@app/base-entity'
+import { Column, Entity } from 'typeorm'
+import { ResourceTypeEnum } from '../enums/resource-type.enum'
 
 @Entity('media')
 export class Media extends BaseEntity {
   @Column({ name: 'full_url' })
-  fullUrl: string;
+  fullUrl: string
 
   @Column({ name: 'name' })
-  name: string;
+  name: string
 
   @Column({ name: 'original_name' })
-  originalName: string;
+  originalName: string
 
   @Column({ name: 'place_holder' })
-  placeHolder: string;
+  placeHolder: string
 
   @Column({ name: 'resource_type', type: 'enum', enum: ResourceTypeEnum })
-  resourceType: ResourceTypeEnum;
+  resourceType: ResourceTypeEnum
 }

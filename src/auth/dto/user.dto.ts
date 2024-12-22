@@ -1,6 +1,6 @@
-import { MetadataDto } from './metadata.dto';
+import { MetadataDto } from './metadata.dto'
 
 export class UserDto {
-  id: string;
-  metadata: MetadataDto;
+  id: string
+  metadata: MetadataDto
 }

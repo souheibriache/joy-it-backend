@@ -1,6 +1,6 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { Type } from 'class-transformer'
+import { IsInt, IsOptional, Max, Min } from 'class-validator'
 
 export class PageOptionsDto {
   @ApiPropertyOptional({ minimum: 1, default: 1 })
@@ -8,7 +8,7 @@ export class PageOptionsDto {
   @IsInt({ message: 'Page must be a number' })
   @Min(1, { message: 'Page must be greated than 1' })
   @IsOptional()
-  readonly page?: number = 1;
+  readonly page?: number = 1
 
   @ApiPropertyOptional({ minimum: 1, maximum: 50, default: 10 })
   @Type(() => Number)
@@ -16,9 +16,9 @@ export class PageOptionsDto {
   @Min(1, { message: 'Take must be greated than 1' })
   @Max(50, { message: 'Take must be less than 50' })
   @IsOptional()
-  readonly take?: number = 10;
+  readonly take?: number = 10
 
   get skip(): number {
-    return (this.page - 1) * this.take;
+    return (this.page - 1) * this.take
   }
 }

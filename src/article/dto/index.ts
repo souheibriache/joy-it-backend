@@ -1,3 +1,3 @@
-export * from './create-article.dto';
-export * from './update-article.dto';
-export * from './create-paragraph.dto';
+export * from './create-article.dto'
+export * from './update-article.dto'
+export * from './create-paragraph.dto'

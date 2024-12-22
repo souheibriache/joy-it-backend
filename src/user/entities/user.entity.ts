@@ -1,7 +1,7 @@
-import { BaseEntity } from '@app/base-entity';
-import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
-import { Column, Entity, OneToMany, TableInheritance } from 'typeorm';
-import { UserRoles } from '../enums/user-roles.enum';
+import { BaseEntity } from '@app/base-entity'
+import { RefreshToken } from 'src/auth/entities/refresh-token.entity'
+import { Column, Entity, OneToMany, TableInheritance } from 'typeorm'
+import { UserRoles } from '../enums/user-roles.enum'
 
 @Entity({ name: 'users' })
 @TableInheritance({
@@ -14,29 +14,29 @@ import { UserRoles } from '../enums/user-roles.enum';
 })
 export class User extends BaseEntity {
   @Column({ name: 'user_name' })
-  userName: string;
+  userName: string
 
   @Column({ type: String, nullable: true, select: false })
-  password: string;
+  password: string
 
   @Column({ type: String, nullable: false })
-  email: string;
+  email: string
 
   @Column({ name: 'first_name' })
-  firstName: string;
+  firstName: string
 
   @Column({ name: 'last_name' })
-  lastName: string;
+  lastName: string
 
   @Column({ type: 'enum', enum: UserRoles, default: UserRoles.CLIENT })
-  role: UserRoles;
+  role: UserRoles
 
   @Column({ type: 'boolean', default: false })
-  isSuperUser: boolean;
+  isSuperUser: boolean
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user, {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  refreshTokens: RefreshToken[];
+  refreshTokens: RefreshToken[]
 }
