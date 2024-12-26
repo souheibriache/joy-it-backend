@@ -50,7 +50,6 @@ export class CompanyController {
   ) {
     const clientId = req?.user?.id
     const uploadedFile = await this.uploadService.upload(file, 'companies')
-    console.log({ uploadedFile })
     return await this.companyService.create(
       createCompanyDto,
       uploadedFile,
@@ -92,9 +91,9 @@ export class CompanyController {
   @Get('/my-company')
   async getClientCompany(@Request() req: IRequestWithUser) {
     const clientId = req?.user?.id
-    return await this.companyService.findOne(
-      { client: { id: clientId } },
-      { client: true, logo: true, subscription: true },
-    )
+    return await this.companyService.findOne({
+      where: { client: { id: clientId } },
+      relations: { client: true, logo: true, subscription: true },
+    })
   }
 }

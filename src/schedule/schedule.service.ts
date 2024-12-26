@@ -30,12 +30,12 @@ export class ScheduleService {
     const { activityId, ...rest } = createScheduleDto
 
     const activity = await this.activityService.findOne({ id: activityId })
-    const company = await this.companyService.findOne(
-      {
+    const company = await this.companyService.findOne({
+      where: {
         client: { id: clientId },
       },
-      { subscription: { plan: { activities: true } } },
-    )
+      relations: { subscription: { plan: { activities: true } } },
+    })
 
     if (
       !company?.subscription?.plan?.activities?.find(

@@ -7,6 +7,7 @@ import { UploadModule } from '@app/upload'
 import { CompanyAdminController } from './controllers/admin-company.controller'
 import { CompanyController } from './controllers/company.controller'
 import { ClientModule } from 'src/client/client.module'
+import { StripeModule } from 'src/stripe/stripe.module'
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ClientModule } from 'src/client/client.module'
     MediaModule,
     UploadModule,
     ClientModule,
+    StripeModule,
   ],
   controllers: [CompanyController, CompanyAdminController],
   providers: [CompanyService],

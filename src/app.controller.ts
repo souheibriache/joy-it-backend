@@ -13,9 +13,4 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello()
   }
-
-  @Get('mail')
-  async sendMailTest() {
-    return this.mailerService.test()
-  }
 }

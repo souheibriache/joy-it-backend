@@ -10,10 +10,11 @@ import {
 import { CompanyService } from '../company.service'
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard'
 import { SuperUserGuard } from 'src/auth/guards/super-user.guard'
-import { CompanyOptionsDto, UpdateCompanyDto } from '../dto'
+import { CompanyOptionsDto } from '../dto'
 import { ICompany } from '../interfaces'
 import { PageDto } from '@app/pagination/dto'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { updateCompanyByAdmin } from '../dto/update-company-by-admin.dto'
 
 @Controller('admin/companies')
 @ApiTags('Admin', 'Companies')
@@ -31,10 +32,10 @@ export class CompanyAdminController {
 
   @Get(':companyId')
   async getCompanyById(@Param('companyId') companyId: string) {
-    return await this.companyService.findOne(
-      { id: companyId },
-      { client: true, logo: true, subscription: { plan: true } },
-    )
+    return await this.companyService.findOne({
+      where: { id: companyId },
+      relations: { client: true, logo: true, subscription: { plan: true } },
+    })
   }
 
   @Put(':companyId/verify')
@@ -44,7 +45,7 @@ export class CompanyAdminController {
 
   @Put(':companyId')
   async updateCompanyByAdmin(
-    @Body() updateCompanyDto: UpdateCompanyDto,
+    @Body() updateCompanyDto: updateCompanyByAdmin,
     @Param('companyId') companyId: string,
   ) {
     return await this.companyService.update(updateCompanyDto, {
