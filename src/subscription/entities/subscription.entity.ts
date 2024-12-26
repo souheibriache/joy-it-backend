@@ -2,6 +2,7 @@ import { BaseEntity } from '@app/base-entity'
 import { Company } from 'src/company/entities'
 import { Plan } from 'src/plan/entities'
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
+import { SubscriptionStatusEnum } from '../enums/subscription-status.enum'
 
 @Entity('subscription')
 export class Subscription extends BaseEntity {
@@ -18,4 +19,14 @@ export class Subscription extends BaseEntity {
 
   @Column({ type: 'timestamptz', name: 'end_date', default: new Date() })
   endDate: Date
+
+  @Column({ nullable: true, select: false })
+  stripeId: string
+
+  @Column({
+    type: 'enum',
+    enum: SubscriptionStatusEnum,
+    default: SubscriptionStatusEnum.CREATED,
+  })
+  status: SubscriptionStatusEnum
 }

@@ -19,4 +19,10 @@ export class Plan extends BaseEntity {
   @ManyToMany(() => Activity)
   @JoinTable({ name: 'activity_id' })
   activities: Activity[]
+
+  @Column({ nullable: true, select: false })
+  stripePriceId: string
+
+  @Column({ nullable: true, select: false })
+  stripeProductId: string
 }

@@ -19,6 +19,7 @@ import { AnalyticsModule } from './analytics/analytics.module'
 import { MorganModule } from 'nest-morgan'
 import { ArticleModule } from './article/article.module'
 import { MailerModule } from '@app/mailer'
+import { StripeModule } from './stripe/stripe.module'
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { MailerModule } from '@app/mailer'
     MorganModule,
     ArticleModule,
     MailerModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [

@@ -25,6 +25,27 @@ export class SubscriptionController {
     )
   }
 
+  @Post('checkout')
+  @UseGuards(AccessTokenGuard)
+  async createCheckoutSession(
+    @Body() { planId }: { planId: string },
+    @Request() req: IRequestWithUser,
+  ) {
+    const clientId = req?.user?.id
+    const session = await this.subscriptionService.createCheckoutSession(
+      planId,
+      clientId,
+    )
+    return { url: session.url }
+  }
+
+  @Post('cancel')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  async cancelSubscription(@Body('subscriptionId') subscriptionId: string) {
+    return await this.subscriptionService.cancelSubscription(subscriptionId)
+  }
+
   @Post('admin')
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard, SuperUserGuard)

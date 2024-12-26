@@ -42,4 +42,7 @@ export class Company extends BaseEntity {
 
   @Column({ type: 'boolean', name: 'is_verified', default: false })
   isVerified: boolean
+
+  @Column({ nullable: true, select: false })
+  stripeCustomerId: string
 }

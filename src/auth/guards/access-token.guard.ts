@@ -27,7 +27,9 @@ export class AccessTokenGuard implements CanActivate {
 
     //? We're assigning the payload to the request object here
     //? so that we can access it in our route handlers
-    request.user = payload
+    const { sub, ...rest } = payload
+
+    request.user = { id: sub, ...rest }
 
     return true
   }

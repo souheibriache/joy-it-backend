@@ -11,23 +11,6 @@ export class MailerService {
     this.sendgridClient.setApiKey(configService.get<string>('SENDGRID_API_KEY'))
   }
 
-  async test() {
-    const msg = {
-      to: 'souheibriache@gmail.com', // Change to your recipient
-      from: this.mailFrom,
-      text: 'and easy to do anywhere, even with Node.js',
-      html: '<strong>and easy to do anywhere, even with Node.js</strong>',
-    }
-
-    return await this.sendgridClient
-      .send(msg)
-      .then(() => {
-        console.log('Email sent')
-        return true
-      })
-      .catch((error) => console.error(error))
-  }
-
   async sendSingle(sendEmailDto: sendEmailDto) {
     const message: MailDataRequired = {
       to: sendEmailDto.to,
