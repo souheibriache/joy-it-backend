@@ -19,43 +19,48 @@ export class SubscriptionService {
     private readonly configService: ConfigService,
   ) {}
 
-  async createSubscription(
-    customerId: string,
-    priceId: string,
-  ): Promise<Stripe.Subscription> {
-    const subscription = await this.stripeClient.subscriptions.create(
-      {
-        customer: customerId,
-        items: [{ price: priceId }],
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent'],
-      },
-      { idempotencyKey: `subscription-${customerId}-${priceId}` },
-    )
+  async handleInvoicePaid(subscriptionStripeId: string) {
+    const stripeSubscription =
+      await this.stripeClient.subscriptions.retrieve(subscriptionStripeId)
+    const plan = await this.planService.findOne({
+      stripePriceId: stripeSubscription.items.data[0].price.id,
+    })
 
-    return subscription
-  }
-
-  async handleInvoicePaid(subscriptionId: string) {
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { stripeId: subscriptionId },
+    let subscription = await this.subscriptionRepository.findOne({
+      where: { stripeId: stripeSubscription.id },
       relations: { company: true, plan: true },
     })
 
-    if (subscription) {
-      subscription.status = SubscriptionStatusEnum.PAID
-      await this.subscriptionRepository.save(subscription)
-
-      subscription.company.credit += subscription.plan.credit
-      await this.companyService.update(
-        { credit: subscription.company.credit },
-        { id: subscription.company.id },
-      )
-    } else {
-      console.warn(
-        `Subscription with ID ${subscriptionId} not found for invoice payment.`,
-      )
+    if (!subscription) {
+      // If the subscription doesn't exist, create a new entry
+      const company = await this.companyService.findOne({
+        where: {
+          stripeCustomerId: stripeSubscription.customer as string,
+        },
+      })
+      subscription = this.subscriptionRepository.create({
+        stripeId: stripeSubscription.id,
+        plan,
+        company,
+        startDate: new Date(stripeSubscription.start_date * 1000),
+        endDate: new Date(stripeSubscription.current_period_end * 1000),
+        status: SubscriptionStatusEnum.PAID,
+      })
     }
+
+    // Update the subscription status
+    subscription.status = SubscriptionStatusEnum.PAID
+    subscription.endDate = new Date(
+      stripeSubscription.current_period_end * 1000,
+    )
+    await this.subscriptionRepository.save(subscription)
+
+    // Update the company's credit
+    subscription.company.credit += subscription.plan.credit
+    await this.companyService.update(
+      { credit: subscription.company.credit },
+      { id: subscription.company.id },
+    )
   }
 
   async handleSubscriptionCanceled(subscriptionStripeId: string) {
@@ -82,25 +87,32 @@ export class SubscriptionService {
       relations: { client: true },
       select: { stripeCustomerId: true, id: true },
     })
-    const plan = await this.planService.findOne(
-      { id: planId },
-      {},
-      {},
-      { id: true, stripePriceId: true },
-    )
-    try {
-      const session = await this.stripeClient.checkout.sessions.create({
-        customer: company.stripeCustomerId,
-        line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-        mode: 'subscription',
-        success_url: `${this.configService.get<string>('FRONTEND_HOST')}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${this.configService.get<string>('FRONTEND_HOST')}/cancel`,
-      })
-      return session
-    } catch (error) {
-      console.error('Error creating checkout session:', error.message)
-      throw new Error('Failed to create checkout session')
+    const plan = await this.planService.findOne({ id: planId })
+
+    if (!company.stripeCustomerId) {
+      company.stripeCustomerId =
+        await this.companyService.createStripeCustomer(company)
     }
+
+    const session = await this.stripeClient.checkout.sessions.create({
+      customer: company.stripeCustomerId,
+      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+      mode: 'subscription',
+      success_url: `${this.configService.get<string>('FRONTEND_HOST')}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${this.configService.get<string>('FRONTEND_HOST')}/cancel`,
+    })
+
+    const subscription = this.subscriptionRepository.create({
+      stripeId: null,
+      plan,
+      company,
+      startDate: new Date(),
+      endDate: null,
+      status: SubscriptionStatusEnum.CREATED,
+    })
+    await this.subscriptionRepository.save(subscription)
+
+    return session
   }
 
   async cancelSubscription(subscriptionId: string) {
@@ -115,42 +127,8 @@ export class SubscriptionService {
     return await this.subscriptionRepository.save(subscription)
   }
 
-  async create(planId: string, clientId: string) {
-    const company = await this.companyService.findOne({
-      where: {
-        client: { id: clientId },
-      },
-      relations: { client: true },
-      select: { credit: true, id: true, stripeCustomerId: true },
-    })
-
-    const plan = await this.planService.findOne(
-      { id: planId },
-      {},
-      {},
-      { stripePriceId: true, id: true },
-    )
-
-    if (!company?.stripeCustomerId) {
-      company.stripeCustomerId =
-        await this.companyService.createStripeCustomer(company)
-    }
-
-    const stripeSubscription = await this.createSubscription(
-      company.stripeCustomerId,
-      plan.stripePriceId,
-    )
-
-    const subscription = this.subscriptionRepository.create({
-      plan,
-      company,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      stripeId: stripeSubscription.id,
-      status: SubscriptionStatusEnum.CREATED,
-    })
-
-    return await this.subscriptionRepository.save(subscription)
+  async create(planId: string, clientId: string): Promise<{ url: string }> {
+    return this.createCheckoutSession(planId, clientId)
   }
 
   async createByAdmin(planId: string, companyId: string) {
