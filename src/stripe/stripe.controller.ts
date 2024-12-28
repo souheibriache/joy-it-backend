@@ -34,7 +34,7 @@ export class StripeController {
     let event
     try {
       event = stripe.webhooks.constructEvent(
-        req.body,
+        Buffer.from(JSON.stringify(req.body)),
         signature,
         endpointSecret,
       )
