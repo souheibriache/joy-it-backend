@@ -17,7 +17,11 @@ export class Subscription extends BaseEntity {
   @Column({ type: 'timestamptz', name: 'start_date', default: new Date() })
   startDate: Date
 
-  @Column({ type: 'timestamptz', name: 'end_date', default: new Date() })
+  @Column({
+    type: 'timestamptz',
+    name: 'end_date',
+    nullable: true,
+  })
   endDate: Date
 
   @Column({ nullable: true, select: false })
