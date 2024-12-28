@@ -90,9 +90,9 @@ export class AuthService {
 
     const verificationMail: sendEmailDto = new sendEmailDto()
     verificationMail.to = client.email
-    verificationMail.template
+    verificationMail.template = 'd-cacd2af73f1047e7a32bbc200bf79da3'
     verificationMail.subject = 'Verification de votre address mail'
-    verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`
+    verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`
     verificationMail.customArgs = {
       firstName: client.firstName,
       verificationToken,
@@ -331,9 +331,10 @@ export class AuthService {
     const payload = { sub: user.id, metadata: user.metadata }
     const expiresIn = 10 * 60 * 1000
 
-    return await this.jwtService.signAsync(payload, {
+    const verificationToken = await this.jwtService.signAsync(payload, {
       expiresIn,
       privateKey: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
     })
+    return `${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken}`
   }
 }

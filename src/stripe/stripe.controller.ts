@@ -21,15 +21,11 @@ export class StripeController {
       },
     )
 
-    console.log({ stripe })
     const endpointSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_SECRET',
     )
-    console.log({ endpointSecret })
 
     const signature = req.headers['stripe-signature']
-
-    console.log({ signature })
 
     let event
     try {
@@ -38,8 +34,6 @@ export class StripeController {
         signature,
         endpointSecret,
       )
-
-      console.log({ event })
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message)
       return res.status(400).send(`Webhook Error: ${err.message}`)
