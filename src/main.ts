@@ -6,9 +6,12 @@ import { ValidationError } from 'class-validator'
 import { ValidationErrorException } from '@app/common/utils/error-handler'
 import { setupSwagger } from '@app/common/utils/swagger'
 import * as morgan from 'morgan'
+import * as bodyParser from 'body-parser'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
+
+  app.use('/api/v1/webhook', bodyParser.raw({ type: 'application/json' }))
 
   app.use(compression())
   app.enableCors()
