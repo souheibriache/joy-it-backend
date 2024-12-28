@@ -87,7 +87,12 @@ export class SubscriptionService {
       relations: { client: true },
       select: { stripeCustomerId: true, id: true },
     })
-    const plan = await this.planService.findOne({ id: planId })
+    const plan = await this.planService.findOne(
+      { id: planId },
+      {},
+      {},
+      { id: true, stripePriceId: true },
+    )
 
     if (!company.stripeCustomerId) {
       company.stripeCustomerId =
