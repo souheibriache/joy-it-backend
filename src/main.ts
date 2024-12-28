@@ -11,6 +11,8 @@ import * as bodyParser from 'body-parser'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
+  app.use('/webhook', bodyParser.raw({ type: 'application/json' }))
+
   app.use(compression())
   app.enableCors()
 
@@ -30,8 +32,6 @@ async function bootstrap() {
       },
     }),
   )
-
-  app.use('/webhook', bodyParser.raw({ type: 'application/json' }))
 
   setupSwagger(app)
 
