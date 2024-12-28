@@ -34,12 +34,12 @@ export class StripeController {
     let event
     try {
       event = stripe.webhooks.constructEvent(
-        req.body,
+        req.reqBody,
         signature,
         endpointSecret,
       )
 
-      console.log({ stripe })
+      console.log({ event })
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message)
       return res.status(400).send(`Webhook Error: ${err.message}`)
