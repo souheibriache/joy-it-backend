@@ -12,6 +12,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
   app.use('/webhook', bodyParser.raw({ type: 'application/json' }))
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
 
   app.use(compression())
   app.enableCors()
