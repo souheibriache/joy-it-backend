@@ -3,10 +3,10 @@ name: CI and Lint
 on:
   push:
     branches:
-      - '**' # Trigger on all branches for lint
+      - 'main'
   pull_request:
     branches:
-      - '**' # Trigger lint on all pull requests
+      - '**'
 
 jobs:
   lint:
