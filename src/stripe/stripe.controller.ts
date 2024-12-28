@@ -12,16 +12,24 @@ export class StripeController {
 
   @Post()
   async handleStripeWebhook(@Req() req, @Res() res) {
+    console.log({ reqBody: req.body })
+
     const stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY'),
       {
         apiVersion: '2024-12-18.acacia',
       },
     )
+
+    console.log({ stripe })
     const endpointSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_SECRET',
     )
+    console.log({ endpointSecret })
+
     const signature = req.headers['stripe-signature']
+
+    console.log({ signature })
 
     let event
     try {
@@ -30,6 +38,8 @@ export class StripeController {
         signature,
         endpointSecret,
       )
+
+      console.log({ stripe })
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message)
       return res.status(400).send(`Webhook Error: ${err.message}`)
