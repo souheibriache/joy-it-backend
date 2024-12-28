@@ -12,7 +12,7 @@ export class StripeController {
 
   @Post()
   async handleStripeWebhook(@Req() req, @Res() res) {
-    console.log({ reqBody: req.body })
+    console.log({ reqBody: req })
 
     const stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY'),
@@ -34,7 +34,7 @@ export class StripeController {
     let event
     try {
       event = stripe.webhooks.constructEvent(
-        req.reqBody,
+        req.rawBody,
         signature,
         endpointSecret,
       )
