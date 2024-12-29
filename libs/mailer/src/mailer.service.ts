@@ -19,8 +19,8 @@ export class MailerService {
       content: sendEmailDto.content,
       text: sendEmailDto.text,
       attachments: sendEmailDto.attachments,
-      templateId: sendEmailDto.template,
-      customArgs: sendEmailDto.customArgs,
+      templateId: sendEmailDto.templateId,
+      dynamicTemplateData: sendEmailDto.dynamicTemplateData,
     }
 
     return await this.sendgridClient.send(message)

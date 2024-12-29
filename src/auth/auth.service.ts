@@ -90,10 +90,10 @@ export class AuthService {
 
     const verificationMail: sendEmailDto = new sendEmailDto()
     verificationMail.to = client.email
-    verificationMail.template = 'd-cacd2af73f1047e7a32bbc200bf79da3'
+    verificationMail.templateId = 'd-cacd2af73f1047e7a32bbc200bf79da3'
     verificationMail.subject = 'Verification de votre address mail'
     verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`
-    verificationMail.customArgs = {
+    verificationMail.dynamicTemplateData = {
       firstName: client.firstName,
       verificationToken,
     }
