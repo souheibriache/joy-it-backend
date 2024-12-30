@@ -14,6 +14,6 @@ export class sendEmailDto {
   text?: string
   content?: MailContent[]
   attachments?: AttachmentData[]
-  template?: string
-  customArgs?: any
+  templateId?: string
+  dynamicTemplateData?: any
 }

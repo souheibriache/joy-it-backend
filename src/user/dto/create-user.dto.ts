@@ -14,5 +14,5 @@ export class CreateUserDto {
   email: string
 
   @ApiProperty()
-  password: string
+  password?: string
 }

@@ -14,4 +14,7 @@ export class Client extends User {
 
   @Column({ type: 'boolean', name: 'is_verified', default: false })
   isVerified: boolean
+
+  @Column({ type: 'timestamptz', nullable: true })
+  verificationSentAt: Date
 }

@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
-import { AuthService } from '../auth.service'
 import { ModuleRef } from '@nestjs/core'
+import { AuthService } from '../auth.service'
 
 @Injectable()
 export class SuperUserGuard implements CanActivate {

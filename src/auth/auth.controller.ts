@@ -1,5 +1,13 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common'
-import { AuthService } from './auth.service'
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Req,
+  Request,
+  UseGuards,
+} from '@nestjs/common'
 import { SignupDto } from './dto/sign-up.dto'
 import { LoginDto, RefreshTokenDto } from './dto'
 import { AccessTokenGuard } from './guards/access-token.guard'
@@ -7,6 +15,10 @@ import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.
 import { ApiBearerAuth } from '@nestjs/swagger'
 import { VerifyAccountDto } from './dto/verify-account-dto'
 import { ResendVerificationEmailDto } from './dto/resend-activation-email.dto'
+import { AuthService } from './auth.service'
+import { UpdatePasswordDto } from './dto/update-password.dto'
+import { RequestResetPasswordDto } from './dto/request-reset-password.dto'
+import { ResetPasswordDto } from './dto/reset-password.dto'
 
 @Controller('accounts')
 export class AuthController {
@@ -52,5 +64,28 @@ export class AuthController {
   async getMyProfile(@Request() req: IRequestWithUser) {
     const userId = req?.user?.id
     return await this.authService.getProfile(userId)
+  }
+
+  @Put('/update-password')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  async updatePassword(
+    @Body() updatePasswordDto: UpdatePasswordDto,
+    @Req() req: IRequestWithUser,
+  ) {
+    const userId = req?.user?.id
+    return await this.authService.updatePassword(userId, updatePasswordDto)
+  }
+
+  @Post('/request-reset-password')
+  async requestResetPassword(
+    @Body() requestResetPasswordDto: RequestResetPasswordDto,
+  ) {
+    return await this.authService.requestResetPassword(requestResetPasswordDto)
+  }
+
+  @Put('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return await this.authService.resetPassword(resetPasswordDto)
   }
 }

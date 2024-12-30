@@ -12,8 +12,6 @@ export class StripeController {
 
   @Post()
   async handleStripeWebhook(@Req() req, @Res() res) {
-    console.log({ reqBody: req })
-
     const stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY'),
       {
@@ -38,8 +36,6 @@ export class StripeController {
       console.error('Webhook signature verification failed:', err.message)
       return res.status(400).send(`Webhook Error: ${err.message}`)
     }
-
-    console.log(`Received event: ${event.type}`)
 
     // Handle event types
     switch (event.type) {

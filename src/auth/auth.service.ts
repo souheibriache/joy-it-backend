@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -17,7 +18,9 @@ import { UserDto } from './dto/user.dto'
 import { IRefreshToken } from './interfaces'
 import {
   ACCESS_TOKEN_TTL,
+  CONFIRM_ACCOUNT_TOKEN_TTL,
   REFRESH_TOKEN_TTL,
+  RESET_PASSWORD_TOKEN_TTL,
 } from '@app/common/utils/constants/jwt-ttl'
 import { JwtService, TokenExpiredError } from '@nestjs/jwt'
 import { Payload } from './dto/payload.dto'
@@ -28,12 +31,18 @@ import { MailerService } from '@app/mailer'
 import { sendEmailDto } from 'libs/mailer/dto'
 import { VerifyAccountDto } from './dto/verify-account-dto'
 import { ResendVerificationEmailDto } from './dto/resend-activation-email.dto'
+import { Password } from './entities/password-history'
+import { UpdatePasswordDto } from './dto/update-password.dto'
+import { RequestResetPasswordDto } from './dto/request-reset-password.dto'
+import { ResetPasswordDto } from './dto/reset-password.dto'
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
+    @InjectRepository(Password)
+    private readonly passwordRepository: Repository<Password>,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly clientService: ClientService,
@@ -53,10 +62,15 @@ export class AuthService {
 
     const createdUser = await this.clientService.create({
       ...rest,
-      password: hashedPassword,
     })
 
     await this.sendVerificationEmail(createdUser)
+
+    const createdPassword = this.passwordRepository.create({
+      user: createdUser,
+      hash: hashedPassword,
+    })
+    await this.passwordRepository.save(createdPassword)
 
     return {
       message: 'Verifier votre boit mail',
@@ -90,15 +104,34 @@ export class AuthService {
 
     const verificationMail: sendEmailDto = new sendEmailDto()
     verificationMail.to = client.email
-    verificationMail.template = 'd-cacd2af73f1047e7a32bbc200bf79da3'
+    verificationMail.templateId = 'd-cacd2af73f1047e7a32bbc200bf79da3'
     verificationMail.subject = 'Verification de votre address mail'
-    verificationMail.text = `Veillez verifier votre adresse mail en cliquant sur le bouton ou bein sur le lien ${verificationToken} \n cet url est valide pendant 10 minutes, \n Joy-it`
-    verificationMail.customArgs = {
+    verificationMail.dynamicTemplateData = {
       firstName: client.firstName,
       verificationToken,
     }
 
     await this.mailerService.sendSingle(verificationMail)
+    client.verificationSentAt = new Date()
+    await client.save()
+  }
+
+  async sendResetPasswordEmail(user: User) {
+    const resetPasswordToken = await this.generateResetPasswordToken({
+      id: user.id,
+      metadata: { email: user.email },
+    })
+
+    const resetPasswprdMail: sendEmailDto = new sendEmailDto()
+    resetPasswprdMail.to = user.email
+    resetPasswprdMail.templateId = 'd-60701e6c1fc04c1fb492d3919013935b'
+    resetPasswprdMail.subject = 'Mise à jour de votre mot de passe'
+    resetPasswprdMail.dynamicTemplateData = {
+      firstName: user.firstName,
+      resetPasswordToken,
+    }
+
+    await this.mailerService.sendSingle(resetPasswprdMail)
   }
 
   async resendVerificationEmail(input: ResendVerificationEmailDto) {
@@ -108,6 +141,16 @@ export class AuthService {
     if (user.isVerified)
       throw new BadRequestException('Account already verified!')
 
+    const now = new Date()
+
+    if (
+      user.verificationSentAt &&
+      now.getTime() - user?.verificationSentAt.getTime() < 1000 * 60 * 3
+    ) {
+      throw new BadRequestException(
+        'Please wait few moments before trying again!',
+      )
+    }
     await this.sendVerificationEmail(user)
 
     return {
@@ -145,13 +188,19 @@ export class AuthService {
     ]
 
     const user = await this.userService.findOne({
-      select: { password: true, id: true, email: true, userName: true },
+      select: { id: true, email: true, userName: true },
       where: where,
     })
 
     if (!user) throw new ForbiddenException('Wrong credintials')
 
-    const isValidPassword = await this.compare(password, user.password)
+    const currentPassword = await this.passwordRepository.findOne({
+      where: { user: { id: user.id }, isCurrent: true },
+    })
+
+    if (!currentPassword) throw new BadRequestException('Wrong credintials')
+
+    const isValidPassword = await this.compare(password, currentPassword.hash)
 
     if (!isValidPassword) throw new ForbiddenException('Wrong credintials')
 
@@ -167,13 +216,25 @@ export class AuthService {
     ]
 
     const user = await this.userService.findOne({
-      select: { password: true, id: true, email: true, userName: true },
+      select: { id: true, email: true, userName: true },
       where: where,
     })
 
     if (!user) throw new ForbiddenException('Wrong credintials')
 
-    const isValidPassword = await this.compare(password, user.password)
+    const currentPassword = await this.passwordRepository.findOne({
+      where: { user: { id: user.id }, isCurrent: true },
+    })
+
+    const passwordHistory = await this.passwordRepository.find({
+      where: { user: { id: user.id } },
+    })
+
+    console.log({ passwordHistory })
+
+    if (!currentPassword) throw new BadRequestException('Wrong credintials')
+
+    const isValidPassword = await this.compare(password, currentPassword.hash)
 
     if (!isValidPassword) throw new ForbiddenException('Wrong credintials')
 
@@ -211,6 +272,18 @@ export class AuthService {
     const expiresIn = ACCESS_TOKEN_TTL
 
     return await this.jwtService.signAsync(payload, { expiresIn })
+  }
+
+  async generateResetPasswordToken(user: UserDto): Promise<string> {
+    const payload = { sub: user.id, metadata: user.metadata }
+    const expiresIn = RESET_PASSWORD_TOKEN_TTL
+
+    const resetPasswordToken = await this.jwtService.signAsync(payload, {
+      expiresIn,
+      privateKey: this.configService.get<string>('RESET_PASSWORD_SECRET_KEY'),
+    })
+
+    return `${this.configService.get<string>('FRONTEND_HOST')}/reset-password?token=${resetPasswordToken}`
   }
 
   async generateRefreshToken(user: UserDto): Promise<string> {
@@ -329,12 +402,104 @@ export class AuthService {
 
   async generateEmailVerificationToken(user: UserDto): Promise<string> {
     const payload = { sub: user.id, metadata: user.metadata }
-    const expiresIn = 10 * 60 * 1000
+    const expiresIn = CONFIRM_ACCOUNT_TOKEN_TTL
 
     const verificationToken = await this.jwtService.signAsync(payload, {
       expiresIn,
       privateKey: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
     })
     return `${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken}`
+  }
+
+  async updatePassword(userId: string, input: UpdatePasswordDto) {
+    const { oldPassword, newPassword } = input
+    const user = await this.userService.findOne({
+      where: { id: userId },
+    })
+
+    const currentPassword = await this.passwordRepository.findOne({
+      where: { user: { id: user.id }, isCurrent: true },
+    })
+
+    if (!currentPassword) throw new BadRequestException('Wrong credintials')
+
+    const isValidPassword = await this.compare(
+      oldPassword,
+      currentPassword.hash,
+    )
+    if (!isValidPassword) throw new BadRequestException('Invalid password')
+
+    const oldPasswords = await this.passwordRepository.find({
+      where: { user: { id: user.id } },
+      order: { createdAt: 'desc' },
+      take: 10,
+    })
+    for (const oldPassword of oldPasswords) {
+      if (await this.compare(newPassword, oldPassword.hash))
+        throw new BadRequestException(
+          'Cannot use a password from the old 10 passwords',
+        )
+    }
+
+    const hash = await this.hash(newPassword)
+
+    const createdPassword = this.passwordRepository.create({ user, hash })
+
+    await this.passwordRepository.update(
+      { user: { id: user.id }, isCurrent: true },
+      { isCurrent: false },
+    )
+    await this.passwordRepository.save(createdPassword)
+
+    return true
+  }
+
+  async requestResetPassword(input: RequestResetPasswordDto) {
+    const { login } = input
+
+    const where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = [
+      { email: login },
+      { userName: login },
+    ]
+
+    const user = await this.userService.findOne({
+      select: { id: true, email: true, userName: true },
+      where: where,
+    })
+    if (user) {
+      await this.sendResetPasswordEmail(user)
+    }
+    return true
+  }
+
+  async resetPassword(input: ResetPasswordDto) {
+    const { token, password } = input
+    const payload = await this.jwtService.verifyAsync(token)
+    if (!payload) throw new BadRequestException('Invalid action')
+    console.log({ payload })
+    const user = await this.userService.findOne({ where: { id: payload.sub } })
+    if (!user) throw new NotFoundException('Invalid action')
+
+    const oldPasswords = await this.passwordRepository.find({
+      where: { user: { id: user.id } },
+      order: { createdAt: 'desc' },
+      take: 10,
+    })
+    for (const oldPassword of oldPasswords) {
+      if (await this.compare(password, oldPassword.hash))
+        throw new BadRequestException(
+          'Cannot use a password from the old 10 passwords',
+        )
+    }
+
+    const hash = await this.hash(password)
+    const newPassword = this.passwordRepository.create({ user, hash })
+    await this.passwordRepository.update(
+      { user: { id: user.id } },
+      { isCurrent: false },
+    )
+    await this.passwordRepository.save(newPassword)
+
+    return true
   }
 }
