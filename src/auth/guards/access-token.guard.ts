@@ -5,8 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { extractTokenFromHeader } from '@app/common/utils/methods'
-import { AuthService } from '../auth.service'
 import { ModuleRef } from '@nestjs/core'
+import { AuthService } from '../auth.service'
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {

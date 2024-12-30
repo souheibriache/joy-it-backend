@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common'
-import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { RefreshToken } from './entities/refresh-token.entity'
@@ -9,6 +8,8 @@ import { UserModule } from 'src/user/user.module'
 import { JwtStrategy } from './strategies'
 import { ClientModule } from 'src/client/client.module'
 import { MailerModule } from '@app/mailer'
+import { Password } from './entities/password-history'
+import { AuthService } from './auth.service'
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { MailerModule } from '@app/mailer'
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([RefreshToken]),
+    TypeOrmModule.forFeature([RefreshToken, Password]),
     UserModule,
     ConfigModule,
     ClientModule,

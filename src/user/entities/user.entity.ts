@@ -2,6 +2,7 @@ import { BaseEntity } from '@app/base-entity'
 import { RefreshToken } from 'src/auth/entities/refresh-token.entity'
 import { Column, Entity, OneToMany, TableInheritance } from 'typeorm'
 import { UserRoles } from '../enums/user-roles.enum'
+import { Password } from 'src/auth/entities/password-history'
 
 @Entity({ name: 'users' })
 @TableInheritance({
@@ -16,8 +17,10 @@ export class User extends BaseEntity {
   @Column({ name: 'user_name' })
   userName: string
 
-  @Column({ type: String, nullable: true, select: false })
-  password: string
+  @OneToMany(() => Password, (password: Password) => password.user, {
+    cascade: true,
+  })
+  passwords: string
 
   @Column({ type: String, nullable: false })
   email: string
