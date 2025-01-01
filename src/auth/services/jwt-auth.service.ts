@@ -1,4 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common'
+import {
+  Inject,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { RefreshToken } from '../entities/refresh-token.entity'
 import { Repository } from 'typeorm'
@@ -15,6 +19,9 @@ import { User } from 'src/user/entities'
 import { IRefreshToken } from '../interfaces'
 import { Payload } from '../dto/payload.dto'
 import { UserService } from 'src/user/user.service'
+import { Cache } from 'cache-manager'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { UserRoles } from 'src/user/enums/user-roles.enum'
 
 @Injectable()
 export class JwtAuthService {
@@ -24,6 +31,8 @@ export class JwtAuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheService: Cache,
   ) {}
 
   async generateAccessToken(user: UserDto): Promise<string> {
@@ -138,5 +147,37 @@ export class JwtAuthService {
     return await this.jwtService.verifyAsync(token, {
       secret: this.configService.get<string>('RESET_PASSWORD_SECRET_KEY'),
     })
+  }
+
+  async searchTokenFromRedis(args: {
+    userId: string
+    token: string
+    tokenType?: string
+  }) {
+    const { userId, token, tokenType } = args
+    const key = `USERS/*/${userId}/TOKENS/${tokenType}/${token}`
+    return await this.cacheService.get(key)
+  }
+
+  async deleteTokensFromRedis(keys: string[]) {
+    if (!keys.length) return
+
+    const promises = keys.map((key) => this.cacheService.del(key))
+    await Promise.all(promises)
+  }
+
+  async insertTokenInRedis(
+    userId: string,
+    role: UserRoles,
+    token: string,
+    tokenType?: string,
+    expiresIn?: number, //? seconds
+  ) {
+    if (!tokenType) tokenType = 'ACCESS'
+    //? expiresIn must be in Milliseconds
+    if (expiresIn) expiresIn = expiresIn * 1000
+
+    const key = `USERS/${role}/${userId}/TOKENS/${tokenType}/${token}`
+    await this.cacheService.set(key, userId, expiresIn)
   }
 }
