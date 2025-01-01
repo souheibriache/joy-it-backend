@@ -9,7 +9,8 @@ import { JwtStrategy } from './strategies'
 import { ClientModule } from 'src/client/client.module'
 import { MailerModule } from '@app/mailer'
 import { Password } from './entities/password-history'
-import { AuthService } from './auth.service'
+import { AuthService } from './services/auth.service'
+import { JwtAuthService } from './services/jwt-auth.service'
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { AuthService } from './auth.service'
     MailerModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, JwtAuthService],
+  exports: [AuthService, JwtAuthService],
 })
 export class AuthModule {}

@@ -7,47 +7,33 @@ import {
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { FindOptionsWhere, Repository } from 'typeorm'
-import { RefreshToken } from './entities/refresh-token.entity'
-import { SignupDto } from './dto/sign-up.dto'
+import { SignupDto } from '../dto/sign-up.dto'
 import * as bcrypt from 'bcryptjs'
 import { User } from 'src/user/entities'
 import { UserService } from 'src/user/user.service'
-import { LoginDto, LoginUserPayload, RefreshTokenDto } from './dto'
-import { MetadataDto } from './dto/metadata.dto'
-import { UserDto } from './dto/user.dto'
-import { IRefreshToken } from './interfaces'
-import {
-  ACCESS_TOKEN_TTL,
-  CONFIRM_ACCOUNT_TOKEN_TTL,
-  REFRESH_TOKEN_TTL,
-  RESET_PASSWORD_TOKEN_TTL,
-} from '@app/common/utils/constants/jwt-ttl'
-import { JwtService, TokenExpiredError } from '@nestjs/jwt'
-import { Payload } from './dto/payload.dto'
+import { LoginDto, LoginUserPayload, RefreshTokenDto } from '../dto'
+import { MetadataDto } from '../dto/metadata.dto'
 import { ClientService } from 'src/client/client.service'
 import { Client } from 'src/client/entities'
-import { ConfigService } from '@app/config'
 import { MailerService } from '@app/mailer'
 import { sendEmailDto } from 'libs/mailer/dto'
-import { VerifyAccountDto } from './dto/verify-account-dto'
-import { ResendVerificationEmailDto } from './dto/resend-activation-email.dto'
-import { Password } from './entities/password-history'
-import { UpdatePasswordDto } from './dto/update-password.dto'
-import { RequestResetPasswordDto } from './dto/request-reset-password.dto'
-import { ResetPasswordDto } from './dto/reset-password.dto'
+import { VerifyAccountDto } from '../dto/verify-account-dto'
+import { ResendVerificationEmailDto } from '../dto/resend-activation-email.dto'
+import { Password } from '../entities/password-history'
+import { UpdatePasswordDto } from '../dto/update-password.dto'
+import { RequestResetPasswordDto } from '../dto/request-reset-password.dto'
+import { ResetPasswordDto } from '../dto/reset-password.dto'
+import { JwtAuthService } from './jwt-auth.service'
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(RefreshToken)
-    private readonly refreshTokenRepository: Repository<RefreshToken>,
     @InjectRepository(Password)
     private readonly passwordRepository: Repository<Password>,
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
     private readonly clientService: ClientService,
-    private readonly configService: ConfigService,
     private readonly mailerService: MailerService,
+    private readonly jwtAuthService: JwtAuthService,
   ) {}
 
   async signup(createUserDto: SignupDto) {
@@ -79,9 +65,8 @@ export class AuthService {
 
   async verifyAccount(verifyAccountDto: VerifyAccountDto) {
     const { verificationToken } = verifyAccountDto
-    const payload = await this.jwtService.verifyAsync(verificationToken, {
-      secret: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
-    })
+    const payload =
+      await this.jwtAuthService.verifyAccountValidationToken(verificationToken)
     if (!payload.sub) {
       throw new UnprocessableEntityException('Invalid token !')
     }
@@ -96,11 +81,28 @@ export class AuthService {
     return await this.authenticate(user, { isVerified: true })
   }
 
-  async sendVerificationEmail(client: Client) {
-    const verificationToken = await this.generateEmailVerificationToken({
-      id: client.id,
-      metadata: { email: client.email },
+  async refreshToken(input: RefreshTokenDto) {
+    const { refreshToken } = input
+    const { user } = await this.jwtAuthService.resolveRefreshToken(refreshToken)
+
+    const metadata = await this.getClientMetaData(user.id)
+
+    const accessToken = await this.jwtAuthService.generateAccessToken({
+      ...user,
+      metadata,
     })
+
+    return {
+      access_token: accessToken,
+    }
+  }
+
+  async sendVerificationEmail(client: Client) {
+    const verificationToken =
+      await this.jwtAuthService.generateEmailVerificationToken({
+        id: client.id,
+        metadata: { email: client.email },
+      })
 
     const verificationMail: sendEmailDto = new sendEmailDto()
     verificationMail.to = client.email
@@ -117,10 +119,11 @@ export class AuthService {
   }
 
   async sendResetPasswordEmail(user: User) {
-    const resetPasswordToken = await this.generateResetPasswordToken({
-      id: user.id,
-      metadata: { email: user.email },
-    })
+    const resetPasswordToken =
+      await this.jwtAuthService.generateResetPasswordToken({
+        id: user.id,
+        metadata: { email: user.email },
+      })
 
     const resetPasswprdMail: sendEmailDto = new sendEmailDto()
     resetPasswprdMail.to = user.email
@@ -251,121 +254,17 @@ export class AuthService {
     user: User,
     metadata: MetadataDto,
   ): Promise<LoginUserPayload> {
-    const access_token = await this.generateAccessToken({ ...user, metadata })
+    const access_token = await this.jwtAuthService.generateAccessToken({
+      ...user,
+      metadata,
+    })
 
-    const refresh_token = await this.generateRefreshToken({
+    const refresh_token = await this.jwtAuthService.generateRefreshToken({
       ...user,
       metadata,
     })
 
     return { access_token, refresh_token }
-  }
-
-  async generateAccessToken(user: UserDto): Promise<string> {
-    const payload = { sub: user.id, metadata: user.metadata }
-    const expiresIn = ACCESS_TOKEN_TTL
-
-    return await this.jwtService.signAsync(payload, { expiresIn })
-  }
-
-  async generateResetPasswordToken(user: UserDto): Promise<string> {
-    const payload = { sub: user.id, metadata: user.metadata }
-    const expiresIn = RESET_PASSWORD_TOKEN_TTL
-
-    const resetPasswordToken = await this.jwtService.signAsync(payload, {
-      expiresIn,
-      privateKey: this.configService.get<string>('RESET_PASSWORD_SECRET_KEY'),
-    })
-
-    return `${this.configService.get<string>('FRONTEND_HOST')}/reset-password?token=${resetPasswordToken}`
-  }
-
-  async generateRefreshToken(user: UserDto): Promise<string> {
-    const payload = { sub: user.id, metadata: user.metadata }
-    const expiresIn = REFRESH_TOKEN_TTL
-
-    const refreshToken = await this.createRefreshToken(user, expiresIn)
-    const token = await this.jwtService.signAsync(
-      { ...payload, jwtId: refreshToken.id },
-      { expiresIn },
-    )
-
-    return token
-  }
-
-  async createRefreshToken(
-    user: Pick<User, 'id'>,
-    ttl: number,
-  ): Promise<IRefreshToken> {
-    const expirationDate = new Date()
-    expirationDate.setTime(expirationDate.getTime() + ttl)
-
-    const refreshToken = this.refreshTokenRepository.create({
-      user: user,
-      expires: expirationDate,
-    })
-    return await this.refreshTokenRepository.save(refreshToken)
-  }
-
-  async verifyToken(token: string): Promise<Payload | undefined> {
-    try {
-      return await this.jwtService.verifyAsync(token)
-    } catch {
-      return
-    }
-  }
-
-  async refreshToken(input: RefreshTokenDto) {
-    const { refreshToken } = input
-    const { user } = await this.resolveRefreshToken(refreshToken)
-
-    const metadata = await this.getClientMetaData(user.id)
-
-    const accessToken = await this.generateAccessToken({
-      ...user,
-      metadata,
-    })
-
-    return {
-      access_token: accessToken,
-    }
-  }
-
-  async resolveRefreshToken(encoded: string) {
-    try {
-      const payload = await this.jwtService.verify(encoded)
-      if (!payload.sub || !payload.jwtId) {
-        throw new UnprocessableEntityException('Invalid refresh token !')
-      }
-
-      const refreshToken = await this.refreshTokenRepository.findOne({
-        where: {
-          id: payload.jwtId,
-        },
-      })
-
-      if (!refreshToken) {
-        throw new UnprocessableEntityException('Refresh token not found.')
-      }
-
-      if (refreshToken.isRevoked) {
-        throw new UnprocessableEntityException('Refresh token revoked.')
-      }
-
-      const user = await this.userService.getOneById(payload.sub)
-
-      if (!user) {
-        throw new UnprocessableEntityException('Invalid refresh token !')
-      }
-
-      return { user, payload }
-    } catch (error) {
-      if (error instanceof TokenExpiredError) {
-        throw new UnprocessableEntityException('Refresh token expired')
-      } else {
-        throw new UnprocessableEntityException('Invalid refresh token !')
-      }
-    }
   }
 
   async isSuperUser(userId: string) {
@@ -392,17 +291,6 @@ export class AuthService {
       where: { id: userId },
       select: { firstName: true, lastName: true, email: true, userName: true },
     })
-  }
-
-  async generateEmailVerificationToken(user: UserDto): Promise<string> {
-    const payload = { sub: user.id, metadata: user.metadata }
-    const expiresIn = CONFIRM_ACCOUNT_TOKEN_TTL
-
-    const verificationToken = await this.jwtService.signAsync(payload, {
-      expiresIn,
-      privateKey: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
-    })
-    return `${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken}`
   }
 
   async updatePassword(userId: string, input: UpdatePasswordDto) {
@@ -468,7 +356,7 @@ export class AuthService {
 
   async resetPassword(input: ResetPasswordDto) {
     const { token, password } = input
-    const payload = await this.jwtService.verifyAsync(token)
+    const payload = await this.jwtAuthService.verifyResetPasswordToken(token)
     if (!payload) throw new BadRequestException('Invalid action')
     const user = await this.userService.findOne({ where: { id: payload.sub } })
     if (!user) throw new NotFoundException('Invalid action')
