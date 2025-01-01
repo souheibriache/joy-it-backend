@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { FindOptionsWhere, Repository } from 'typeorm'
 import { RefreshToken } from './entities/refresh-token.entity'
 import { SignupDto } from './dto/sign-up.dto'
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 import { User } from 'src/user/entities'
 import { UserService } from 'src/user/user.service'
 import { LoginDto, LoginUserPayload, RefreshTokenDto } from './dto'
@@ -225,12 +225,6 @@ export class AuthService {
     const currentPassword = await this.passwordRepository.findOne({
       where: { user: { id: user.id }, isCurrent: true },
     })
-
-    const passwordHistory = await this.passwordRepository.find({
-      where: { user: { id: user.id } },
-    })
-
-    console.log({ passwordHistory })
 
     if (!currentPassword) throw new BadRequestException('Wrong credintials')
 
@@ -476,7 +470,6 @@ export class AuthService {
     const { token, password } = input
     const payload = await this.jwtService.verifyAsync(token)
     if (!payload) throw new BadRequestException('Invalid action')
-    console.log({ payload })
     const user = await this.userService.findOne({ where: { id: payload.sub } })
     if (!user) throw new NotFoundException('Invalid action')
 

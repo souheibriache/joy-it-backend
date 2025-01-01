@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator'
 import { ActivityType } from '../enums/activity-type.enum'
 
@@ -44,9 +45,17 @@ export class CreateActivityDto {
 
   @ApiProperty()
   @IsNumber()
+  @Min(0)
   @IsNotEmpty()
   @Transform(({ value }) => Number(value))
-  duration: number // Duration in hours
+  duration: number
+
+  @ApiProperty()
+  @IsNumber()
+  @Min(0)
+  @IsNotEmpty()
+  @Transform(({ value }) => Number(value))
+  participants: number
 
   @ApiProperty()
   @IsNumber()
@@ -72,4 +81,9 @@ export class CreateActivityDto {
   @ApiProperty({ isArray: true, default: [] })
   @IsArray()
   keyWords: string[]
+
+  @ApiProperty({ type: Boolean, default: false })
+  @IsBoolean()
+  @IsOptional()
+  isInsideCompany: boolean
 }
