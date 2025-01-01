@@ -50,6 +50,7 @@ export class SubscriptionService {
 
     // Update the subscription status
     subscription.status = SubscriptionStatusEnum.PAID
+    subscription.startDate = new Date()
     subscription.endDate = new Date(
       stripeSubscription.current_period_end * 1000,
     )
@@ -99,6 +100,21 @@ export class SubscriptionService {
         await this.companyService.createStripeCustomer(company)
     }
 
+    const existingSubscription = await this.subscriptionRepository.findOne({
+      where: {
+        company: { id: company.id },
+        plan: { id: plan.id },
+        status: SubscriptionStatusEnum.CREATED,
+      },
+      select: { stripeId: true, id: true, stripeCheckoutSession: true },
+    })
+
+    if (existingSubscription?.stripeCheckoutSession) {
+      return this.stripeClient.checkout.sessions.retrieve(
+        existingSubscription.stripeCheckoutSession,
+      )
+    }
+
     const session = await this.stripeClient.checkout.sessions.create({
       customer: company.stripeCustomerId,
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
@@ -107,15 +123,21 @@ export class SubscriptionService {
       cancel_url: `${this.configService.get<string>('FRONTEND_HOST')}/cancel`,
     })
 
-    const subscription = this.subscriptionRepository.create({
-      stripeId: null,
-      plan,
-      company,
-      startDate: new Date(),
-      endDate: null,
-      status: SubscriptionStatusEnum.CREATED,
-    })
-    await this.subscriptionRepository.save(subscription)
+    if (existingSubscription) {
+      existingSubscription.stripeCheckoutSession = session.id
+      await existingSubscription.save()
+    } else {
+      const subscription = this.subscriptionRepository.create({
+        stripeId: null,
+        plan,
+        company,
+        stripeCheckoutSession: session.id,
+        startDate: new Date(),
+        endDate: null,
+        status: SubscriptionStatusEnum.CREATED,
+      })
+      await this.subscriptionRepository.save(subscription)
+    }
 
     return session
   }

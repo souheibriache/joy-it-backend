@@ -14,20 +14,26 @@ export class Activity extends BaseEntity {
   @Column({ array: true, type: 'text', name: 'key_words' })
   keyWords: string[]
 
-  @Column()
-  address: string
+  @Column({ nullable: true })
+  address?: string
 
-  @Column({ name: 'postal_code' })
-  postalCode: string
+  @Column({ name: 'postal_code', nullable: true })
+  postalCode?: string
 
-  @Column()
-  city: string
+  @Column({ nullable: true })
+  city?: string
 
-  @Column({ name: 'location_url' })
-  locationUrl: string
+  @Column({ name: 'location_url', nullable: true })
+  locationUrl?: string
+
+  @Column({ default: false, type: 'boolean' })
+  isInsideCompany: boolean
 
   @Column({ name: 'duration', type: 'int' })
   duration: number // Duration in hours
+
+  @Column({ name: 'participants', type: 'int', default: 0 })
+  participants: number
 
   @Column({
     type: 'enum',

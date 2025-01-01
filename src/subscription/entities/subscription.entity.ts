@@ -27,6 +27,9 @@ export class Subscription extends BaseEntity {
   @Column({ nullable: true, select: false })
   stripeId: string
 
+  @Column({ nullable: true, select: false })
+  stripeCheckoutSession: string
+
   @Column({
     type: 'enum',
     enum: SubscriptionStatusEnum,
