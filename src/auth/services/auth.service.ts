@@ -24,6 +24,7 @@ import { UpdatePasswordDto } from '../dto/update-password.dto'
 import { RequestResetPasswordDto } from '../dto/request-reset-password.dto'
 import { ResetPasswordDto } from '../dto/reset-password.dto'
 import { JwtAuthService } from './jwt-auth.service'
+import { RedisTokenTypes } from '../enums/token-types.enum'
 
 @Injectable()
 export class AuthService {
@@ -78,7 +79,19 @@ export class AuthService {
 
     user.isVerified = true
     await user.save()
-    return await this.authenticate(user, { isVerified: true })
+    const authenticationTokens = await this.authenticate(user, {
+      isVerified: true,
+      role: user.role,
+      email: user.email,
+    })
+
+    await this.jwtAuthService.searchAndDeleteTokensFromRedis({
+      userId: user.id,
+      token: verificationToken,
+      tokenType: RedisTokenTypes.EMAIL_VERIFICATION,
+    })
+
+    return authenticationTokens
   }
 
   async refreshToken(input: RefreshTokenDto) {
@@ -101,7 +114,7 @@ export class AuthService {
     const verificationToken =
       await this.jwtAuthService.generateEmailVerificationToken({
         id: client.id,
-        metadata: { email: client.email },
+        metadata: { email: client.email, role: client.role },
       })
 
     const verificationMail: sendEmailDto = new sendEmailDto()
@@ -122,7 +135,7 @@ export class AuthService {
     const resetPasswordToken =
       await this.jwtAuthService.generateResetPasswordToken({
         id: user.id,
-        metadata: { email: user.email },
+        metadata: { email: user.email, role: user.role },
       })
 
     const resetPasswprdMail: sendEmailDto = new sendEmailDto()
@@ -191,7 +204,7 @@ export class AuthService {
     ]
 
     const user = await this.userService.findOne({
-      select: { id: true, email: true, userName: true },
+      select: { id: true, email: true, userName: true, role: true },
       where: where,
     })
 
@@ -207,7 +220,7 @@ export class AuthService {
 
     if (!isValidPassword) throw new ForbiddenException('Wrong credintials')
 
-    return await this.authenticate(user, {})
+    return await this.authenticate(user, { role: user.role, email: user.email })
   }
 
   async login(loginDto: LoginDto) {
@@ -281,6 +294,8 @@ export class AuthService {
     return {
       companyId: client?.company?.id,
       isVerified: client.isVerified,
+      role: client.role,
+      email: client.email,
       isCompanyVerified: client?.company?.isVerified,
       hasSubscription: client?.company?.subscription?.id,
     }
@@ -380,6 +395,12 @@ export class AuthService {
       { isCurrent: false },
     )
     await this.passwordRepository.save(newPassword)
+
+    await this.jwtAuthService.searchAndDeleteTokensFromRedis({
+      userId: user.id,
+      token,
+      tokenType: RedisTokenTypes.RESET_PASSWORD,
+    })
 
     return true
   }

@@ -1,4 +1,4 @@
-name: CI and Lint
+name: Backend CI and Lint
 
 on:
   push:

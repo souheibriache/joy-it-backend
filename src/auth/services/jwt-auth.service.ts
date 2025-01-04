@@ -1,4 +1,9 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common'
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { RefreshToken } from '../entities/refresh-token.entity'
 import { Repository } from 'typeorm'
@@ -15,34 +20,46 @@ import { User } from 'src/user/entities'
 import { IRefreshToken } from '../interfaces'
 import { Payload } from '../dto/payload.dto'
 import { UserService } from 'src/user/user.service'
+import { Cache } from 'cache-manager'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { UserRoles } from 'src/user/enums/user-roles.enum'
+import Redis from 'ioredis'
+import { RedisTokenTypes } from '../enums/token-types.enum'
 
 @Injectable()
 export class JwtAuthService {
+  private redisClient: Redis
+
   constructor(
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
-  ) {}
+    @Inject(CACHE_MANAGER)
+    private readonly cacheService: Cache,
+  ) {
+    this.redisClient = new Redis({
+      host: configService.get('REDIS_HOST'),
+      port: configService.get('REDIS_PORT'),
+      password: configService.get('REDIS_PASSWORD'),
+    })
+  }
 
   async generateAccessToken(user: UserDto): Promise<string> {
     const payload = { sub: user.id, metadata: user.metadata }
     const expiresIn = ACCESS_TOKEN_TTL
 
-    return await this.jwtService.signAsync(payload, { expiresIn })
-  }
-
-  async generateResetPasswordToken(user: UserDto): Promise<string> {
-    const payload = { sub: user.id, metadata: user.metadata }
-    const expiresIn = RESET_PASSWORD_TOKEN_TTL
-
-    const resetPasswordToken = await this.jwtService.signAsync(payload, {
+    const token = await this.jwtService.signAsync(payload, { expiresIn })
+    await this.insertTokenInRedis({
+      userId: user.id,
+      role: user.metadata.role,
+      token: token,
+      tokenType: RedisTokenTypes.ACCESS,
       expiresIn,
-      privateKey: this.configService.get<string>('RESET_PASSWORD_SECRET_KEY'),
     })
 
-    return `${this.configService.get<string>('FRONTEND_HOST')}/reset-password?token=${resetPasswordToken}`
+    return token
   }
 
   async generateRefreshToken(user: UserDto): Promise<string> {
@@ -55,7 +72,42 @@ export class JwtAuthService {
       { expiresIn },
     )
 
+    await this.insertTokenInRedis({
+      userId: user.id,
+      role: user.metadata.role,
+      token,
+      tokenType: RedisTokenTypes.REFRESH,
+      expiresIn,
+    })
+
     return token
+  }
+
+  async generateResetPasswordToken(user: UserDto): Promise<string> {
+    const payload = { sub: user.id, metadata: user.metadata }
+    const expiresIn = RESET_PASSWORD_TOKEN_TTL
+
+    const resetPasswordToken = await this.jwtService.signAsync(payload, {
+      expiresIn,
+      privateKey: this.configService.get<string>('RESET_PASSWORD_SECRET_KEY'),
+    })
+
+    const tokens = await this.searchTokenFromRedis({
+      userId: user.id,
+      tokenType: RedisTokenTypes.RESET_PASSWORD,
+      token: '*',
+    })
+    if (tokens.length) await this.deleteTokensFromRedis(tokens)
+
+    await this.insertTokenInRedis({
+      userId: user.id,
+      role: user.metadata.role,
+      token: resetPasswordToken,
+      tokenType: RedisTokenTypes.RESET_PASSWORD,
+      expiresIn,
+    })
+
+    return `${this.configService.get<string>('FRONTEND_HOST')}/reset-password?token=${resetPasswordToken}`
   }
 
   async createRefreshToken(
@@ -74,7 +126,15 @@ export class JwtAuthService {
 
   async verifyToken(token: string): Promise<Payload | undefined> {
     try {
-      return await this.jwtService.verifyAsync(token)
+      const payload = await this.jwtService.verifyAsync(token)
+      const tokens = await this.searchTokenFromRedis({
+        userId: payload.sub,
+        token,
+        tokenType: '*',
+      })
+
+      if (!tokens?.length) return null
+      return payload
     } catch {
       return
     }
@@ -86,6 +146,15 @@ export class JwtAuthService {
       if (!payload.sub || !payload.jwtId) {
         throw new UnprocessableEntityException('Invalid refresh token !')
       }
+
+      const tokens = await this.searchTokenFromRedis({
+        userId: payload.sub,
+        token: encoded,
+        tokenType: 'REFRESH',
+      })
+
+      if (!tokens?.length)
+        throw new ForbiddenException('Invalid refresh token !')
 
       const refreshToken = await this.refreshTokenRepository.findOne({
         where: {
@@ -125,18 +194,96 @@ export class JwtAuthService {
       expiresIn,
       privateKey: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
     })
+
+    const tokens = await this.searchTokenFromRedis({
+      userId: user.id,
+      token: '*',
+      tokenType: RedisTokenTypes.EMAIL_VERIFICATION,
+    })
+
+    if (tokens.length) {
+      await this.deleteTokensFromRedis(tokens)
+    }
+
+    await this.insertTokenInRedis({
+      userId: user.id,
+      role: user.metadata.role,
+      token: verificationToken,
+      tokenType: RedisTokenTypes.EMAIL_VERIFICATION,
+      expiresIn,
+    })
     return `${this.configService.get<string>('FRONTEND_HOST')}/account-verification?token=${verificationToken}`
   }
 
   async verifyAccountValidationToken(token) {
-    return await this.jwtService.verifyAsync(token, {
+    const payload = await this.jwtService.verifyAsync(token, {
       secret: this.configService.get<string>('CONFIRM_ACCOUNT_SECRET_KEY'),
     })
+
+    const tokens = await this.searchTokenFromRedis({
+      userId: payload.sub,
+      token: token,
+      tokenType: RedisTokenTypes.EMAIL_VERIFICATION,
+    })
+    if (!tokens.length) return null
+
+    return payload
   }
 
   async verifyResetPasswordToken(token) {
-    return await this.jwtService.verifyAsync(token, {
+    const payload = await this.jwtService.verifyAsync(token, {
       secret: this.configService.get<string>('RESET_PASSWORD_SECRET_KEY'),
     })
+    const tokens = await this.searchTokenFromRedis({
+      userId: payload.sub,
+      token: token,
+      tokenType: RedisTokenTypes.RESET_PASSWORD,
+    })
+    if (!tokens.length) return null
+
+    return payload
+  }
+
+  async searchTokenFromRedis(args: {
+    userId: string
+    token: string
+    tokenType?: string
+  }) {
+    const { userId, token, tokenType } = args
+    const key = `USERS/*/${userId}/TOKENS/${tokenType}/${token}`
+    return await this.redisClient.keys(key)
+  }
+
+  async deleteTokensFromRedis(keys: string[]) {
+    if (!keys.length) return
+
+    const promises = keys.map((key) => this.cacheService.del(key))
+    await Promise.all(promises)
+  }
+
+  async searchAndDeleteTokensFromRedis(args: {
+    userId: string
+    token: string
+    tokenType?: string
+  }) {
+    const keys = await this.searchTokenFromRedis(args)
+    await this.deleteTokensFromRedis(keys)
+  }
+
+  async insertTokenInRedis(args: {
+    userId: string
+    role: UserRoles
+    token: string
+    tokenType?: string
+    expiresIn?: number
+  }) {
+    const { userId, role, token } = args
+    let { tokenType, expiresIn } = args
+    if (!tokenType) tokenType = RedisTokenTypes.ACCESS
+    //? expiresIn must be in Milliseconds
+    if (expiresIn) expiresIn = expiresIn * 1000
+
+    const key = `USERS/${role}/${userId}/TOKENS/${tokenType}/${token}`
+    await this.cacheService.set(key, userId, expiresIn)
   }
 }
