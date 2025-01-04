@@ -15,7 +15,7 @@ import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.
 import { ApiBearerAuth } from '@nestjs/swagger'
 import { VerifyAccountDto } from './dto/verify-account-dto'
 import { ResendVerificationEmailDto } from './dto/resend-activation-email.dto'
-import { AuthService } from './auth.service'
+import { AuthService } from './services/auth.service'
 import { UpdatePasswordDto } from './dto/update-password.dto'
 import { RequestResetPasswordDto } from './dto/request-reset-password.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'

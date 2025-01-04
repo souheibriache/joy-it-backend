@@ -6,23 +6,24 @@ import {
 } from '@nestjs/common'
 import { extractTokenFromHeader } from '@app/common/utils/methods'
 import { ModuleRef } from '@nestjs/core'
-import { AuthService } from '../auth.service'
+import { AuthService } from '../services/auth.service'
+import { JwtAuthService } from '../services/jwt-auth.service'
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
-  private authService: AuthService
+  private jwtAuthService: JwtAuthService
 
   constructor(private moduleRef: ModuleRef) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    if (!this.authService) {
-      this.authService = this.moduleRef.get(AuthService, { strict: false })
+    if (!this.jwtAuthService) {
+      this.jwtAuthService = this.moduleRef.get(AuthService, { strict: false })
     }
     const request = context.switchToHttp().getRequest()
     const token = extractTokenFromHeader(request)
     if (!token) throw new UnauthorizedException()
 
-    const payload = await this.authService.verifyToken(token)
+    const payload = await this.jwtAuthService.verifyToken(token)
     if (!payload) throw new UnauthorizedException()
 
     //? We're assigning the payload to the request object here
