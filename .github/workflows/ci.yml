@@ -54,7 +54,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_REPOSITORY }}:latest .
-          docker push ${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+      - name: Build and tag the Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/joy-it-backend:latest .
+
+      - name: Push the Docker image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/joy-it-backend:latest
