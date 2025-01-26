@@ -29,6 +29,11 @@ export class CreateCompanyDto {
   @IsPhoneNumber()
   phoneNumber: string
 
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  siretNumber: string
+
   @ApiProperty({ type: Number })
   @IsNumber()
   @Transform(({ value }) => Number(value))

@@ -11,7 +11,7 @@ export class Activity extends BaseEntity {
   @Column()
   description: string
 
-  @Column({ array: true, type: 'text', name: 'key_words' })
+  @Column({ array: true, type: 'text', name: 'key_words', nullable: true })
   keyWords: string[]
 
   @Column({ nullable: true })

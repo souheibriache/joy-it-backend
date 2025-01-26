@@ -12,10 +12,9 @@ export class SuperUserGuard implements CanActivate {
     if (!this.authService) {
       this.authService = this.moduleRef.get(AuthService, { strict: false })
     }
-
     const request = context.switchToHttp().getRequest()
     const user = request.user
 
-    return await this.authService.isSuperUser(user.sub)
+    return await this.authService.isSuperUser(user.id)
   }
 }

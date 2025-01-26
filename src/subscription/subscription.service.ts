@@ -110,17 +110,24 @@ export class SubscriptionService {
     })
 
     if (existingSubscription?.stripeCheckoutSession) {
-      return this.stripeClient.checkout.sessions.retrieve(
-        existingSubscription.stripeCheckoutSession,
-      )
+      const existingSession =
+        await this.stripeClient.checkout.sessions.retrieve(
+          existingSubscription.stripeCheckoutSession,
+        )
+      console.log({ existingSession })
+      return existingSession
     }
 
     const session = await this.stripeClient.checkout.sessions.create({
       customer: company.stripeCustomerId,
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: `${this.configService.get<string>('FRONTEND_HOST')}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${this.configService.get<string>('FRONTEND_HOST')}/cancel`,
+      success_url: `${this.configService.get<string>('FRONTEND_HOST')}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${this.configService.get<string>('FRONTEND_HOST')}/payment-canceled`,
+      metadata: {
+        planId: plan.id,
+        planName: plan.name,
+      },
     })
 
     if (existingSubscription) {
@@ -138,8 +145,32 @@ export class SubscriptionService {
       })
       await this.subscriptionRepository.save(subscription)
     }
-
     return session
+  }
+
+  async getSessionById(sessionId: string) {
+    const session =
+      await this.stripeClient.checkout.sessions.retrieve(sessionId)
+    return {
+      plan: session.metadata?.planName || 'N/A',
+      amount_total: session.amount_total || 0,
+      payment_intent: session.payment_intent || 'N/A',
+      customer_email: session.customer_details?.email || 'N/A',
+      start_date: session.subscription
+        ? (
+            await this.stripeClient.subscriptions.retrieve(
+              session.subscription as string,
+            )
+          ).current_period_start
+        : null,
+      end_date: session.subscription
+        ? (
+            await this.stripeClient.subscriptions.retrieve(
+              session.subscription as string,
+            )
+          ).current_period_end
+        : null,
+    }
   }
 
   async cancelSubscription(subscriptionId: string) {
