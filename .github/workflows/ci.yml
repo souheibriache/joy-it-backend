@@ -47,9 +47,14 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm install
-      - run: npm run build --if-present
-      - run: |
-          touch .env
-          echo "${{ secrets.ENV_FILE }}" > .env
-      - run: pm2 restart joy-it-backend
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_REPOSITORY }}:latest .
+          docker push ${{ secrets.DOCKERHUB_REPOSITORY }}:latest
