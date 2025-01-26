@@ -59,3 +59,6 @@ jobs:
 
       - name: Push the Docker image
         run: docker push ${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+
+      - name: Apply changes
+        run: kubectl rollout restart deploy joy-it-backend -n joy-it
