@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common'
 import { SubscriptionService } from './subscription.service'
 import { CreateSubscriptionDto } from './dto/create-subscription.dto'
 import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.dto'
@@ -37,6 +45,11 @@ export class SubscriptionController {
       clientId,
     )
     return { url: session.url }
+  }
+
+  @Get('checkout/:session_id')
+  async getCheckoutSession(@Param('session_id') sessionId: string) {
+    return await this.subscriptionService.getSessionById(sessionId)
   }
 
   @Post('cancel')

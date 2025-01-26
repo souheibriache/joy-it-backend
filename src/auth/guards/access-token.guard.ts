@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common'
 import { extractTokenFromHeader } from '@app/common/utils/methods'
 import { ModuleRef } from '@nestjs/core'
-import { AuthService } from '../services/auth.service'
 import { JwtAuthService } from '../services/jwt-auth.service'
 
 @Injectable()
@@ -17,7 +16,9 @@ export class AccessTokenGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (!this.jwtAuthService) {
-      this.jwtAuthService = this.moduleRef.get(AuthService, { strict: false })
+      this.jwtAuthService = this.moduleRef.get(JwtAuthService, {
+        strict: false,
+      })
     }
     const request = context.switchToHttp().getRequest()
     const token = extractTokenFromHeader(request)

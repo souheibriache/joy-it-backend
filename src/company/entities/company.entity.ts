@@ -26,6 +26,9 @@ export class Company extends BaseEntity {
   @Column({ name: 'phone_number' })
   phoneNumber: string
 
+  @Column({ name: 'siret_number', nullable: true })
+  siretNumber: string
+
   @Column({ name: 'employees_number', type: 'int' })
   employeesNumber: number
 

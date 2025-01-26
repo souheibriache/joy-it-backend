@@ -23,25 +23,25 @@ export class CreateActivityDto {
   @IsNotEmpty()
   description: string
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  address: string
+  address?: string
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  postalCode: string
+  postalCode?: string
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  city: string
+  city?: string
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  locationUrl: string
+  locationUrl?: string
 
   @ApiProperty()
   @IsNumber()
@@ -78,12 +78,14 @@ export class CreateActivityDto {
   @IsEnum(ActivityType, { each: true })
   types: ActivityType[]
 
-  @ApiProperty({ isArray: true, default: [] })
+  @ApiProperty({ isArray: true, default: [], nullable: true })
   @IsArray()
+  @IsOptional()
   keyWords: string[]
 
   @ApiProperty({ type: Boolean, default: false })
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => Boolean(value))
   isInsideCompany: boolean
 }
