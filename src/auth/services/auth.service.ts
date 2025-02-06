@@ -68,7 +68,7 @@ export class AuthService {
     const { verificationToken } = verifyAccountDto
     const payload =
       await this.jwtAuthService.verifyAccountValidationToken(verificationToken)
-    if (!payload.sub) {
+    if (!payload?.sub) {
       throw new UnprocessableEntityException('Invalid token !')
     }
     const user = await this.clientService.findOne({ id: payload.sub })
