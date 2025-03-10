@@ -4,6 +4,7 @@ import eslintPluginPrettier from 'eslint-plugin-prettier'
 
 export default [
   {
+    files: ['src/**/*.ts', 'apps/**/*.ts', 'libs/**/*.ts', 'test/**/*.ts'],
     languageOptions: {
       parser: eslintParserTs,
       parserOptions: {
