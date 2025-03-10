@@ -107,7 +107,7 @@ export class ServiceOrderService {
     })
     const order = await this.findOne({ id: orderId })
     const session = await this.stripeClient.checkout.sessions.create({
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'pay_by_bank'],
       mode: 'payment',
       customer: company.stripeCustomerId,
       line_items: [
@@ -142,7 +142,15 @@ export class ServiceOrderService {
     const endDate = now.setMonth(now.getMonth() + order.duration)
     order.endDate = new Date(endDate)
 
-    return await this.serviceOrderRepository.save(order)
+    await order.save()
+    console.log({ order })
+    return order
+  }
+
+  async getSessionById(sessionId: string) {
+    const session =
+      await this.stripeClient.checkout.sessions.retrieve(sessionId)
+    return session
   }
 
   private calculateAllowedBookings(

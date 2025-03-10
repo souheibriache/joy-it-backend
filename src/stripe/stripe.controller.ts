@@ -16,7 +16,7 @@ export class StripeController {
       this.configService.get<string>('STRIPE_SECRET_KEY'),
       { apiVersion: '2025-01-27.acacia' },
     )
-
+    console.log('stripee')
     const endpointSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_SECRET',
     )

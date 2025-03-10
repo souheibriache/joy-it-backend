@@ -16,7 +16,7 @@ import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard'
 
 @Controller('service-order')
-@UseGuards(AccessTokenGuard)
+// @UseGuards(AccessTokenGuard)
 export class ServiceOrderController {
   constructor(private readonly serviceOrderService: ServiceOrderService) {}
 
@@ -51,6 +51,11 @@ export class ServiceOrderController {
       userId,
     )
     return { url: session.url }
+  }
+
+  @Get('checkout/:session_id')
+  async getCheckoutSession(@Param('session_id') sessionId: string) {
+    return await this.serviceOrderService.getSessionById(sessionId)
   }
 
   @Get('/:id')
