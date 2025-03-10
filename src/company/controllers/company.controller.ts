@@ -91,7 +91,6 @@ export class CompanyController {
   @Get('/my-company')
   async getClientCompany(@Request() req: IRequestWithUser) {
     const clientId = req?.user?.id
-    console.log({ clientId })
     return await this.companyService.findOne({
       where: { client: { id: clientId } },
       relations: { client: true, logo: true, serviceOrders: { details: true } },

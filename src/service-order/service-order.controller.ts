@@ -26,8 +26,6 @@ export class ServiceOrderController {
     @Request() req: IRequestWithUser,
   ) {
     const userId = req?.user?.id
-    console.log({ req, user: req?.user, userId })
-
     return await this.serviceOrderService.create(createServiceOrderDto, userId)
   }
 

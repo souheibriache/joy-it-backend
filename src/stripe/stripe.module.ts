@@ -11,7 +11,7 @@ import { ServiceOrderModule } from 'src/service-order/service-order.module'
       provide: 'STRIPE_CLIENT',
       useFactory: (configService: ConfigService) => {
         return new Stripe(configService.get<string>('STRIPE_SECRET_KEY'), {
-          apiVersion: '2025-01-27.acacia',
+          apiVersion: '2025-02-24.acacia',
         })
       },
       inject: [ConfigService],

@@ -14,7 +14,7 @@ export class StripeController {
   async handleStripeWebhook(@Req() req, @Res() res) {
     const stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY'),
-      { apiVersion: '2025-01-27.acacia' },
+      { apiVersion: '2025-02-24.acacia' },
     )
     console.log('stripee')
     const endpointSecret = this.configService.get<string>(
