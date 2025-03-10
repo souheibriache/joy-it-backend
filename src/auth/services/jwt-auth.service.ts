@@ -118,7 +118,7 @@ export class JwtAuthService {
     expirationDate.setTime(expirationDate.getTime() + ttl)
 
     const refreshToken = this.refreshTokenRepository.create({
-      user: user,
+      user,
       expires: expirationDate,
     })
     return await this.refreshTokenRepository.save(refreshToken)
@@ -157,9 +157,7 @@ export class JwtAuthService {
         throw new ForbiddenException('Invalid refresh token !')
 
       const refreshToken = await this.refreshTokenRepository.findOne({
-        where: {
-          id: payload.jwtId,
-        },
+        where: { id: payload.jwtId },
       })
 
       if (!refreshToken) {
@@ -281,9 +279,12 @@ export class JwtAuthService {
     let { tokenType, expiresIn } = args
     if (!tokenType) tokenType = RedisTokenTypes.ACCESS
     //? expiresIn must be in Milliseconds
-    if (expiresIn) expiresIn = expiresIn * 1000
+    if (expiresIn) expiresIn = expiresIn
 
     const key = `USERS/${role}/${userId}/TOKENS/${tokenType}/${token}`
-    await this.cacheService.set(key, userId, expiresIn)
+
+    await this.redisClient.set(key, userId, 'EX', expiresIn)
+
+    return await this.redisClient.keys(key)
   }
 }

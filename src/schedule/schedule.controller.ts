@@ -43,7 +43,7 @@ export class ScheduleController {
     )
   }
 
-  @Get(':scheduleId')
+  @Get('/:scheduleId')
   @UseGuards(AccessTokenGuard)
   async getOne(
     @Request() req: IRequestWithUser,
@@ -70,7 +70,7 @@ export class ScheduleController {
     )
   }
 
-  @Put(':scheduleId')
+  @Put('/:scheduleId')
   @UseGuards(AccessTokenGuard)
   async update(
     @Body() updateScheduleDto: UpdateScheduleDto,
@@ -85,7 +85,7 @@ export class ScheduleController {
     )
   }
 
-  @Put(':scheduleId/cancel')
+  @Put('/:scheduleId/cancel')
   @UseGuards(AccessTokenGuard)
   async cancelSchedule(
     @Request() req: IRequestWithUser,
@@ -104,7 +104,7 @@ export class ScheduleController {
     return await this.scheduleService.update(scheduleId, updateScheduleDto)
   }
 
-  @Delete(':scheduleId')
+  @Delete('/:scheduleId')
   @UseGuards(AccessTokenGuard)
   async delete(
     @Param('scheduleId') scheduleId: string,

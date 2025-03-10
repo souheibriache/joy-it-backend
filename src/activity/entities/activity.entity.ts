@@ -38,16 +38,15 @@ export class Activity extends BaseEntity {
   @Column({
     type: 'enum',
     enum: ActivityType,
-    array: true,
-    default: [ActivityType.AUTRE],
+    default: ActivityType.NOURRITURE,
   })
-  types: ActivityType[]
+  type: ActivityType
 
   @Column({ type: 'boolean', default: true })
   isAvailable: boolean
 
-  @Column({ type: 'int', name: 'credit_cost' })
-  creditCost: number
+  @Column({ type: 'float', nullable: true })
+  basePrice?: number
 
   @OneToMany(() => ActivityImage, (image: ActivityImage) => image.activity, {
     cascade: true,

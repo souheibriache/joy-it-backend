@@ -17,7 +17,6 @@ export const setupSwagger = (app: INestApplication): void => {
     .addBearerAuth()
     .build()
   const document = SwaggerModule.createDocument(app, config)
-
   const SWAGGER_ENDPOINT = configService.get('SWAGGER_ENDPOINT')
   const SWAGGER_USERNAME = configService.get('SWAGGER_USERNAME')
   const SWAGGER_PASSWORD = configService.get('SWAGGER_PASSWORD')
@@ -25,7 +24,7 @@ export const setupSwagger = (app: INestApplication): void => {
   //? secure access to swagger using basic auth
   if (SWAGGER_USERNAME && SWAGGER_PASSWORD) {
     app.use(
-      `/${SWAGGER_ENDPOINT}*`,
+      `/${SWAGGER_ENDPOINT}`,
       basicAuth({
         challenge: true,
         users: { [SWAGGER_USERNAME]: SWAGGER_PASSWORD },

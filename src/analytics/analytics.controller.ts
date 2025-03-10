@@ -9,7 +9,7 @@ import { ApiBearerAuth } from '@nestjs/swagger'
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  @Get()
+  @Get('')
   @UseGuards(AccessTokenGuard, SuperUserGuard)
   @ApiBearerAuth()
   async getAnalytics(): Promise<AnalyticsResponseDto> {
