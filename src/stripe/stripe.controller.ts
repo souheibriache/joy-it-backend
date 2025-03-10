@@ -16,13 +16,13 @@ export class StripeController {
       this.configService.get<string>('STRIPE_SECRET_KEY'),
       { apiVersion: '2025-02-24.acacia' },
     )
-    console.log('stripee')
     const endpointSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_SECRET',
     )
 
     const signature = req.headers['stripe-signature']
 
+    console.log({ endpointSecret, signature })
     let event
     try {
       event = stripe.webhooks.constructEvent(
