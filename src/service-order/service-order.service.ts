@@ -106,6 +106,7 @@ export class ServiceOrderService {
       where: { client: { id: userId } },
     })
     const order = await this.findOne({ id: orderId })
+
     const session = await this.stripeClient.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -143,7 +144,6 @@ export class ServiceOrderService {
     order.endDate = new Date(endDate)
 
     await order.save()
-    console.log({ order })
     return order
   }
 

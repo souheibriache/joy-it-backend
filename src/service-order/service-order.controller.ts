@@ -16,16 +16,17 @@ import { IRequestWithUser } from '@app/common/interfaces/request-user.interface.
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard'
 
 @Controller('service-order')
-// @UseGuards(AccessTokenGuard)
+@UseGuards(AccessTokenGuard)
 export class ServiceOrderController {
   constructor(private readonly serviceOrderService: ServiceOrderService) {}
 
   @Post()
   async create(
     @Body() createServiceOrderDto: CreateServiceOrderDto,
-    @Request() req: IRequestWithUser,
+    @Req() req: IRequestWithUser,
   ) {
     const userId = req?.user?.id
+
     return await this.serviceOrderService.create(createServiceOrderDto, userId)
   }
 
@@ -41,7 +42,7 @@ export class ServiceOrderController {
   @Post('/:orderId/checkout')
   async checkout(
     @Param('orderId') orderId: string,
-    @Request() req: IRequestWithUser,
+    @Req() req: IRequestWithUser,
   ) {
     const userId = req?.user?.id
     const session = await this.serviceOrderService.createCheckoutSession(
