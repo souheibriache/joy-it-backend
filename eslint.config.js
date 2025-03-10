@@ -25,6 +25,5 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       'prettier/prettier': 'error',
     },
-    ignores: ['.eslintrc.js'], // Ignore old config
   },
 ]
