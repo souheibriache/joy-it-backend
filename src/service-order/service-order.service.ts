@@ -107,7 +107,7 @@ export class ServiceOrderService {
     })
     const order = await this.findOne({ id: orderId })
     const session = await this.stripeClient.checkout.sessions.create({
-      payment_method_types: ['card', 'pay_by_bank'],
+      payment_method_types: ['card'],
       mode: 'payment',
       customer: company.stripeCustomerId,
       line_items: [
