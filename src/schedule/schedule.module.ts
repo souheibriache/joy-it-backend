@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { Schedule } from './entities'
 import { ActivityModule } from 'src/activity/activity.module'
 import { CompanyModule } from 'src/company/company.module'
+import { ServiceOrderModule } from 'src/service-order/service-order.module'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Schedule]),
     ActivityModule,
     CompanyModule,
+    ServiceOrderModule,
   ],
   controllers: [ScheduleController],
   providers: [ScheduleService],

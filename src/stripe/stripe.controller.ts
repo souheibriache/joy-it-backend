@@ -1,22 +1,20 @@
 import { Controller, Post, Req, Res } from '@nestjs/common'
 import { ConfigService } from '@app/config'
 import Stripe from 'stripe'
-import { SubscriptionService } from 'src/subscription/subscription.service'
+import { ServiceOrderService } from 'src/service-order/service-order.service'
 
 @Controller('webhook')
 export class StripeController {
   constructor(
     private readonly configService: ConfigService,
-    private readonly subscriptionService: SubscriptionService,
+    private readonly serviceOrderService: ServiceOrderService,
   ) {}
 
   @Post()
   async handleStripeWebhook(@Req() req, @Res() res) {
     const stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY'),
-      {
-        apiVersion: '2024-12-18.acacia',
-      },
+      { apiVersion: '2025-01-27.acacia' },
     )
 
     const endpointSecret = this.configService.get<string>(
@@ -41,17 +39,18 @@ export class StripeController {
     switch (event.type) {
       case 'invoice.payment_succeeded':
         const invoice = event.data.object as Stripe.Invoice
-        console.log(`Invoice paid: ${invoice.id}`)
-        await this.subscriptionService.handleInvoicePaid(
-          invoice.subscription as string,
-        )
+        const session = event.data.object as Stripe.Checkout.Session
+        const orderId = session.metadata.orderId
+        await this.serviceOrderService.confirmPayment(orderId)
+        console.log(`Order ${orderId} confirmed and activated.`)
+
         break
       case 'invoice.payment_failed':
         const failedInvoice = event.data.object as Stripe.Invoice
         console.log(`Invoice payment failed: ${failedInvoice.id}`)
-        await this.subscriptionService.handleSubscriptionCanceled(
-          failedInvoice.id,
-        )
+        // await this.subscriptionService.handleSubscriptionCanceled(
+        //   failedInvoice.id,
+        // )
         break
       default:
         console.log(`Unhandled event type ${event.type}`)

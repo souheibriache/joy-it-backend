@@ -1,8 +1,15 @@
 import { BaseEntity } from '@app/base-entity'
 import { Media } from '@app/media/entities'
 import { Client } from 'src/client/entities'
-import { Subscription } from 'src/subscription/entities'
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm'
+import { ServiceOrder } from 'src/service-order/entities'
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm'
 
 @Entity('company')
 export class Company extends BaseEntity {
@@ -36,9 +43,11 @@ export class Company extends BaseEntity {
   @JoinColumn({ name: 'logo_id', referencedColumnName: 'id' })
   logo: Media
 
-  @ManyToOne(() => Subscription, { nullable: true })
-  @JoinColumn({ referencedColumnName: 'id', name: 'subscription_id' })
-  subscription: Subscription
+  @OneToMany(() => ServiceOrder, (serviceOrder) => serviceOrder.company, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  serviceOrders: ServiceOrder[]
 
   @Column({ type: 'int', default: 0 })
   credit: number

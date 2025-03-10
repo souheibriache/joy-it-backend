@@ -121,6 +121,7 @@ export class CompanyService {
     select?: FindOptionsSelect<Company>
   }) {
     const { where, relations, order, select } = input
+
     const company = await this.companyRepository.findOne({
       where,
       relations,
@@ -169,7 +170,7 @@ export class CompanyService {
     const relations: FindOptionsRelations<Company> = {
       client: true,
       logo: true,
-      subscription: { plan: true },
+      serviceOrders: { details: true },
     }
 
     const [items, itemCount] = await this.companyRepository.findAndCount({
@@ -177,9 +178,7 @@ export class CompanyService {
       skip,
       relations,
       take,
-      order: {
-        ...sort,
-      },
+      order: { ...sort },
     })
 
     const pageMetaDto = new PageMetaDto({

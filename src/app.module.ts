@@ -8,20 +8,20 @@ import { AuthModule } from './auth/auth.module'
 import { AdminModule } from './admin/admin.module'
 import { ClientModule } from './client/client.module'
 import { CompanyModule } from './company/company.module'
-import { SubscriptionModule } from './subscription/subscription.module'
-import { PlanModule } from './plan/plan.module'
 import { ActivityModule } from './activity/activity.module'
 import { MediaModule } from '@app/media'
 import { ScheduleModule } from './schedule/schedule.module'
 import { APP_FILTER } from '@nestjs/core'
 import { ValidationErrorFilter } from '@app/common/utils/error-handler/validation-error-filter'
 import { AnalyticsModule } from './analytics/analytics.module'
-import { MorganModule } from 'nest-morgan'
 import { ArticleModule } from './article/article.module'
 import { MailerModule } from '@app/mailer'
 import { StripeModule } from './stripe/stripe.module'
 import { CacheModule } from '@nestjs/cache-manager'
 import { redisStore } from 'cache-manager-redis-yet'
+import { ServiceOrderModule } from './service-order/service-order.module'
+import { ServiceOrderDetailModule } from './service-order-detail/service-order-detail.module'
+import { PricingModule } from './pricing/pricing.module'
 
 @Module({
   imports: [
@@ -32,13 +32,10 @@ import { redisStore } from 'cache-manager-redis-yet'
     AdminModule,
     ClientModule,
     CompanyModule,
-    SubscriptionModule,
-    PlanModule,
     ActivityModule,
     MediaModule,
     ScheduleModule,
     AnalyticsModule,
-    MorganModule,
     ArticleModule,
     MailerModule,
     StripeModule,
@@ -57,14 +54,14 @@ import { redisStore } from 'cache-manager-redis-yet'
         }),
       }),
     }),
+    ServiceOrderModule,
+    ServiceOrderDetailModule,
+    PricingModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_FILTER,
-      useClass: ValidationErrorFilter,
-    },
+    { provide: APP_FILTER, useClass: ValidationErrorFilter },
   ],
 })
 export class AppModule {}

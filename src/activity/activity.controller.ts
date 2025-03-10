@@ -64,7 +64,7 @@ export class ActivityController {
     return await this.activityService.create(createActivityDto, uploadedFiles)
   }
 
-  @Put(':activityId')
+  @Put('/:activityId')
   @UseGuards(AccessTokenGuard, SuperUserGuard)
   @ApiBearerAuth()
   async update(
@@ -74,7 +74,7 @@ export class ActivityController {
     return await this.activityService.update(activityId, updateActivityDto)
   }
 
-  @Put(':activityId/main-image')
+  @Put('/:activityId/main-image')
   @UseGuards(AccessTokenGuard, SuperUserGuard)
   @ApiBearerAuth()
   async updateMainImage(
@@ -87,7 +87,7 @@ export class ActivityController {
     )
   }
 
-  @Put(':activityId/images')
+  @Put('/:activityId/images')
   @UseGuards(AccessTokenGuard, SuperUserGuard)
   @UseInterceptors(FilesInterceptor('images', 5))
   @ApiConsumes('multipart/form-data')
@@ -118,14 +118,14 @@ export class ActivityController {
     )
   }
 
-  @Delete(':activityId')
+  @Delete('/:activityId')
   @UseGuards(AccessTokenGuard, SuperUserGuard)
   @ApiBearerAuth()
   async delet(@Param('activityId') activityId: string) {
     return await this.activityService.delete(activityId)
   }
 
-  @Delete(':activityId/:imageId')
+  @Delete('/:activityId/:imageId')
   @UseGuards(AccessTokenGuard, SuperUserGuard)
   @ApiBearerAuth()
   async deleteImage(
@@ -135,7 +135,7 @@ export class ActivityController {
     return await this.activityService.deleteImage(activityId, imageId)
   }
 
-  @Get(':activityId')
+  @Get('/:activityId')
   async findOneById(@Param('activityId') activityId: string) {
     return await this.activityService.findOne(
       { id: activityId },
@@ -143,7 +143,7 @@ export class ActivityController {
     )
   }
 
-  @Get()
+  @Get('')
   async getPaginatedActivities(
     @Query() pageOptionsDto: ActivityOptionsDto,
   ): Promise<PageDto<IActivity>> {

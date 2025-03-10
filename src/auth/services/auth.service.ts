@@ -38,18 +38,14 @@ export class AuthService {
   ) {}
 
   async signup(createUserDto: SignupDto) {
-    const user = await this.userService.findAll({
-      email: createUserDto.email,
-    })
+    const user = await this.userService.findAll({ email: createUserDto.email })
     if (user.length) throw new BadRequestException('This user already exists!')
 
     const { password, ...rest } = createUserDto
 
     const hashedPassword = await this.hash(password)
 
-    const createdUser = await this.clientService.create({
-      ...rest,
-    })
+    const createdUser = await this.clientService.create({ ...rest })
 
     await this.sendVerificationEmail(createdUser)
 
@@ -59,9 +55,7 @@ export class AuthService {
     })
     await this.passwordRepository.save(createdPassword)
 
-    return {
-      message: 'Verifier votre boit mail',
-    }
+    return { message: 'Verifier votre boit mail' }
   }
 
   async verifyAccount(verifyAccountDto: VerifyAccountDto) {
@@ -105,9 +99,7 @@ export class AuthService {
       metadata,
     })
 
-    return {
-      access_token: accessToken,
-    }
+    return { access_token: accessToken }
   }
 
   async sendVerificationEmail(client: Client) {
@@ -169,9 +161,7 @@ export class AuthService {
     }
     await this.sendVerificationEmail(user)
 
-    return {
-      message: 'Verifier votre boit mail',
-    }
+    return { message: 'Verifier votre boit mail' }
   }
 
   async isValidUserName(username: string) {
@@ -288,8 +278,17 @@ export class AuthService {
   async getClientMetaData(clientId: string) {
     const client = await this.clientService.findOne(
       { id: clientId },
-      { company: { subscription: true } },
+      { company: { serviceOrders: { details: true } } },
     )
+    const serviceOrder = client?.company?.serviceOrders?.find(
+      (serviceOrder) =>
+        serviceOrder.status === 'ACTIVE' &&
+        serviceOrder.endDate.getTime() < Date.now(),
+    )
+
+    const availableOrders = serviceOrder?.details?.map((order) => {
+      return { [order.serviceType]: order.allowedBookings - order.bookingsUsed }
+    })
 
     return {
       companyId: client?.company?.id,
@@ -297,7 +296,7 @@ export class AuthService {
       role: client.role,
       email: client.email,
       isCompanyVerified: client?.company?.isVerified,
-      hasSubscription: client?.company?.subscription?.id,
+      availableOrders,
     }
   }
 
@@ -310,9 +309,7 @@ export class AuthService {
 
   async updatePassword(userId: string, input: UpdatePasswordDto) {
     const { oldPassword, newPassword } = input
-    const user = await this.userService.findOne({
-      where: { id: userId },
-    })
+    const user = await this.userService.findOne({ where: { id: userId } })
 
     const currentPassword = await this.passwordRepository.findOne({
       where: { user: { id: user.id }, isCurrent: true },

@@ -30,26 +30,24 @@ export class CompanyAdminController {
     return await this.companyService.getPaginatedCompanies(pageOptionsDto)
   }
 
-  @Get(':companyId')
+  @Get('/:companyId')
   async getCompanyById(@Param('companyId') companyId: string) {
     return await this.companyService.findOne({
       where: { id: companyId },
-      relations: { client: true, logo: true, subscription: { plan: true } },
+      relations: { client: true, logo: true, serviceOrders: { details: true } },
     })
   }
 
-  @Put(':companyId/verify')
+  @Put('/:companyId/verify')
   async verifyCompany(@Param('companyId') companyId: string) {
     return await this.companyService.verifyCompany(companyId)
   }
 
-  @Put(':companyId')
+  @Put('/:companyId')
   async updateCompanyByAdmin(
     @Body() updateCompanyDto: updateCompanyByAdmin,
     @Param('companyId') companyId: string,
   ) {
-    return await this.companyService.update(updateCompanyDto, {
-      id: companyId,
-    })
+    return await this.companyService.update(updateCompanyDto, { id: companyId })
   }
 }
