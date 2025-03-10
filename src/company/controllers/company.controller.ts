@@ -94,7 +94,6 @@ export class CompanyController {
     return await this.companyService.findOne({
       where: { client: { id: clientId } },
       relations: { client: true, logo: true, serviceOrders: { details: true } },
-      select: { serviceOrders: true },
     })
   }
 }
