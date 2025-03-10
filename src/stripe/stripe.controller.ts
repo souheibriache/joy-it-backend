@@ -37,7 +37,7 @@ export class StripeController {
 
     // Handle event types
     switch (event.type) {
-      case 'invoice.payment_succeeded':
+      case 'payment_intent.succeeded':
         const invoice = event.data.object as Stripe.Invoice
         const session = event.data.object as Stripe.Checkout.Session
         const orderId = session.metadata.orderId
@@ -45,7 +45,7 @@ export class StripeController {
         console.log(`Order ${orderId} confirmed and activated.`)
 
         break
-      case 'invoice.payment_failed':
+      case 'payment_intent.failed':
         const failedInvoice = event.data.object as Stripe.Invoice
         console.log(`Invoice payment failed: ${failedInvoice.id}`)
         // await this.subscriptionService.handleSubscriptionCanceled(
