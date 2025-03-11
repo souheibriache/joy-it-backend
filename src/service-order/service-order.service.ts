@@ -62,13 +62,15 @@ export class ServiceOrderService {
       (serviceOrderDetail) => {
         return {
           ...serviceOrderDetail,
-          allowedBooking: this.calculateAllowedBookings(
+          allowedBookings: this.calculateAllowedBookings(
             serviceOrderDetail.frequency,
             createServiceOrderDto.duration,
           ),
         }
       },
     )
+
+    console.log({ serviceOrderDetails })
 
     const order = this.serviceOrderRepository.create({
       participants,

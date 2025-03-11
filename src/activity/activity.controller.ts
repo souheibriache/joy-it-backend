@@ -71,6 +71,7 @@ export class ActivityController {
     @Body() updateActivityDto: updateActivityDto,
     @Param('activityId') activityId: string,
   ) {
+    console.log({ updateActivityDto })
     return await this.activityService.update(activityId, updateActivityDto)
   }
 

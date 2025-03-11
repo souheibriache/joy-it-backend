@@ -45,9 +45,6 @@ export class Activity extends BaseEntity {
   @Column({ type: 'boolean', default: true })
   isAvailable: boolean
 
-  @Column({ type: 'float', nullable: true })
-  basePrice?: number
-
   @OneToMany(() => ActivityImage, (image: ActivityImage) => image.activity, {
     cascade: true,
   })

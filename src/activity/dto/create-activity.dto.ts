@@ -57,12 +57,6 @@ export class CreateActivityDto {
   @Transform(({ value }) => Number(value))
   participants: number
 
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  @Transform(({ value }) => Number(value))
-  creditCost: number
-
   @ApiProperty({ type: Number, default: 0 })
   @IsNumber()
   @IsOptional()
@@ -74,9 +68,9 @@ export class CreateActivityDto {
   @IsOptional()
   isAvailable: boolean
 
-  @ApiProperty({ isArray: true, enum: ActivityType })
+  @ApiProperty({ enum: ActivityType })
   @IsEnum(ActivityType, { each: true })
-  types: ActivityType[]
+  type: ActivityType
 
   @ApiProperty({ isArray: true, default: [], nullable: true })
   @IsArray()
