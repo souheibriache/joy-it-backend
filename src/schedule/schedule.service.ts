@@ -38,17 +38,18 @@ export class ScheduleService {
     })
 
     const currentOrder = company.serviceOrders.find((order) => {
-      if (order.status !== 'ACTIVE' || order.endDate.getTime() > Date.now())
+      if (order.status !== 'ACTIVE' || order.endDate.getTime() < Date.now())
         return false
 
-      order.details.forEach((detail) => {
-        if (detail.serviceType === activity.type) {
-          if (detail.bookingsUsed < detail.allowedBookings) return true
-        }
+      return order.details.some((detail) => {
+        return (
+          detail.serviceType === activity.type &&
+          detail.bookingsUsed < detail.allowedBookings
+        )
       })
-      return false
     })
 
+    console.log({ currentOrder })
     if (!currentOrder)
       throw new BadRequestException("You don't have valid orders")
 

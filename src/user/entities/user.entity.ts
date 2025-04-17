@@ -1,8 +1,15 @@
 import { BaseEntity } from '@app/base-entity'
 import { RefreshToken } from 'src/auth/entities/refresh-token.entity'
-import { Column, Entity, OneToMany, TableInheritance } from 'typeorm'
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  TableInheritance,
+} from 'typeorm'
 import { UserRoles } from '../enums/user-roles.enum'
 import { Password } from 'src/auth/entities/password-history'
+import { Article } from 'src/article/entities'
 
 @Entity({ name: 'users' })
 @TableInheritance({
@@ -42,4 +49,7 @@ export class User extends BaseEntity {
     onDelete: 'CASCADE',
   })
   refreshTokens: RefreshToken[]
+
+  @OneToMany(() => Article, (article: Article) => article.author)
+  articles: Article[]
 }

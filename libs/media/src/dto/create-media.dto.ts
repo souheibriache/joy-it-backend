@@ -9,5 +9,5 @@ export class CreateMediaDto {
 
   placeHolder: string
 
-  resourceType: ResourceTypeEnum
+  resourceType?: ResourceTypeEnum
 }

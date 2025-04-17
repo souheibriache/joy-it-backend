@@ -21,7 +21,17 @@ export class PricingService {
   }
 
   async getPricing() {
-    const pricingExists = await this.pricingRepository.find()
+    const pricingExists = await this.pricingRepository.find({
+      select: {
+        employee: true,
+        snacking: true,
+        wellBeing: true,
+        teambuilding: true,
+      },
+      order: {
+        createdAt: 'desc',
+      },
+    })
     if (!pricingExists.length) {
       return await this.create({})
     }
@@ -31,8 +41,11 @@ export class PricingService {
 
   async update(updatePricingDto: UpdatePricingDto) {
     const pricing = await this.getPricing()
-    await this.pricingRepository.update(pricing.id, updatePricingDto)
-    return await this.getPricing()
+    pricing.employee = updatePricingDto.employee
+    pricing.snacking = updatePricingDto.snacking
+    pricing.teambuilding = updatePricingDto.teambuilding
+    pricing.wellBeing = updatePricingDto.wellBeing
+    return await pricing.save()
   }
 
   async calculatePricing(parameters: CalculatePricingDto): Promise<number> {
