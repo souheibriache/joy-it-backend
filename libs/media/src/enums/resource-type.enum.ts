@@ -3,4 +3,5 @@ export enum ResourceTypeEnum {
   VIDEO = 'video',
   RAW = 'raw',
   AUTO = 'auto',
+  PDF = 'pdf',
 }

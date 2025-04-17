@@ -7,6 +7,7 @@ import { MailDataRequired } from '@sendgrid/mail'
 export class MailerService {
   private sendgridClient = sgMail
   private mailFrom = 'contact@joy-it.fr'
+  private senderName = 'Joy-it'
   constructor(private readonly configService: ConfigService) {
     this.sendgridClient.setApiKey(configService.get<string>('SENDGRID_API_KEY'))
   }
@@ -14,7 +15,11 @@ export class MailerService {
   async sendSingle(sendEmailDto: sendEmailDto) {
     const message: MailDataRequired = {
       to: sendEmailDto.to,
-      from: this.mailFrom,
+      from: {
+        email: this.mailFrom,
+        name: this.senderName,
+      },
+
       subject: sendEmailDto.subject,
       content: sendEmailDto.content,
       text: sendEmailDto.text,
@@ -29,7 +34,10 @@ export class MailerService {
   async sendMultiple(sendMultipleEmailsDto: SendMultipleEmailsDto) {
     const message: MailDataRequired = {
       to: sendMultipleEmailsDto.to,
-      from: this.mailFrom,
+      from: {
+        email: this.mailFrom,
+        name: this.senderName,
+      },
       subject: sendMultipleEmailsDto.subject,
       content: sendMultipleEmailsDto.content,
       text: sendMultipleEmailsDto.text,

@@ -22,6 +22,9 @@ import { redisStore } from 'cache-manager-redis-yet'
 import { ServiceOrderModule } from './service-order/service-order.module'
 import { ServiceOrderDetailModule } from './service-order-detail/service-order-detail.module'
 import { PricingModule } from './pricing/pricing.module'
+import { NwesletterModule } from './nwesletter/nwesletter.module'
+import { SupportModule } from './support/support.module'
+import { FaqModule } from './faq/faq.module'
 
 @Module({
   imports: [
@@ -57,6 +60,9 @@ import { PricingModule } from './pricing/pricing.module'
     ServiceOrderModule,
     ServiceOrderDetailModule,
     PricingModule,
+    NwesletterModule,
+    SupportModule,
+    FaqModule,
   ],
   controllers: [AppController],
   providers: [

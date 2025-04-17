@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Media } from './entities'
 import { Repository } from 'typeorm'
@@ -14,5 +14,13 @@ export class MediaService {
   async create(createMediaDto: CreateMediaDto): Promise<Media> {
     const media = this.mediaRepository.create(createMediaDto)
     return await this.mediaRepository.save(media)
+  }
+
+  async delete(id: string) {
+    const deletedItem = await this.mediaRepository.delete(id)
+    if (deletedItem.affected < 1) {
+      throw new NotFoundException('Media not found')
+    }
+    return true
   }
 }

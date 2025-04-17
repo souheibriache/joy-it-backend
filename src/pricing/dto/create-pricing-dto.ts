@@ -1,24 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsNotEmpty, IsNumber } from 'class-validator'
+import { IsNumber } from 'class-validator'
 
 export class CreatePricingDto {
   @ApiProperty()
   @IsNumber()
-  employee?: number
+  employee?: number = 0
 
   @ApiProperty()
   @IsNumber()
-  month?: number
+  month?: number = 0
 
   @ApiProperty()
   @IsNumber()
-  snacking?: number
+  snacking?: number = 0
 
   @ApiProperty()
   @IsNumber()
-  teambuilding?: number
+  teambuilding?: number = 0
 
   @ApiProperty()
   @IsNumber()
-  wellBeing?: number
+  wellBeing?: number = 0
 }

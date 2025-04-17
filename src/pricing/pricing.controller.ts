@@ -14,13 +14,13 @@ export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
   @Get('')
-  @UseGuards(SuperUserGuard)
+  @UseGuards(AccessTokenGuard, SuperUserGuard)
   async getPricing() {
     return await this.pricingService.getPricing()
   }
 
   @Put()
-  @UseGuards(SuperUserGuard)
+  @UseGuards(AccessTokenGuard, SuperUserGuard)
   async updatePricing(@Body() updatePricingDto: UpdatePricingDto) {
     return await this.pricingService.update(updatePricingDto)
   }
