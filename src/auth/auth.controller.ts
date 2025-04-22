@@ -19,6 +19,7 @@ import { AuthService } from './services/auth.service'
 import { UpdatePasswordDto } from './dto/update-password.dto'
 import { RequestResetPasswordDto } from './dto/request-reset-password.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
+import { UpdateUserDto } from './dto/update-profile.dto'
 
 @Controller('accounts')
 export class AuthController {
@@ -87,5 +88,15 @@ export class AuthController {
   @Put('reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return await this.authService.resetPassword(resetPasswordDto)
+  }
+
+  @Put('profile')
+  @UseGuards(AccessTokenGuard)
+  async updateProfile(
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req: IRequestWithUser,
+  ) {
+    const userId = req.user?.id
+    return this.authService.updateUserProfile(userId, updateUserDto)
   }
 }

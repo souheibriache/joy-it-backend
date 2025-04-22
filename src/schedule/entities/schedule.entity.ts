@@ -17,6 +17,12 @@ export class Schedule extends BaseEntity {
   @Column({ type: 'timestamptz' })
   date: Date
 
+  @Column({ nullable: true })
+  startTime: string
+
+  @Column({ nullable: true })
+  endTime: string
+
   @Column({ type: 'int' })
   participants: number
 
