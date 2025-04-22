@@ -36,6 +36,8 @@ import { PageDto, PageMetaDto } from '@app/pagination/dto'
 import * as archiver from 'archiver'
 import axios from 'axios'
 import { Readable } from 'stream'
+import { UserService } from 'src/user/user.service'
+import { ClientService } from 'src/client/client.service'
 
 @Injectable()
 export class SupportService {
@@ -45,6 +47,7 @@ export class SupportService {
     private readonly mediaService: MediaService,
     private readonly mailerService: MailerService,
     private readonly uploadService: UploadService,
+    private readonly clientService: ClientService,
   ) {}
 
   async create(createSupportInput: CreateSupportQuestionDto) {
@@ -118,23 +121,26 @@ export class SupportService {
     return supportQuestion
   }
 
-  async postSupportQuestionByUser(
+  async postQuestionByUser(
     postQuestionUserDto: PostQuestionUserDto,
-    askedBy: User,
-    category: SupportCategory,
+    userId: string,
   ) {
-    const email = askedBy.email
-    return await this.create({
+    const user = await this.clientService.findOne(
+      { id: userId },
+      { company: true },
+    )
+
+    return await this.postQuestion({
       ...postQuestionUserDto,
-      firstName: askedBy.firstName,
-      lastName: askedBy.lastName,
-      email,
-      askedBy,
-      category,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      email: user?.email,
+      companyName: user?.company?.name,
+      phoneNumber: user?.company?.phoneNumber,
     })
   }
 
-  async postQuestionByVisitor(postQuestionVisitorDto: PostQuestionVisitorDto) {
+  async postQuestion(postQuestionVisitorDto: PostQuestionVisitorDto) {
     return await this.create({
       ...postQuestionVisitorDto,
       category: SupportCategory.VISITOR,

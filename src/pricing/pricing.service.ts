@@ -62,7 +62,7 @@ export class PricingService {
     const pricing = await this.getPricing()
     const { snacking, teambuilding, wellBeing, basePrice } = pricing
 
-    let totalPrice = basePrice * numberOfParticipants * months
+    let totalPrice = (basePrice || 1) * numberOfParticipants * months
 
     if (snackingSelected) {
       totalPrice += numberOfParticipants * months * snackingFrequency * snacking

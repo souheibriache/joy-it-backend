@@ -25,6 +25,7 @@ import { RequestResetPasswordDto } from '../dto/request-reset-password.dto'
 import { ResetPasswordDto } from '../dto/reset-password.dto'
 import { JwtAuthService } from './jwt-auth.service'
 import { RedisTokenTypes } from '../enums/token-types.enum'
+import { UpdateUserDto } from '../dto/update-profile.dto'
 
 @Injectable()
 export class AuthService {
@@ -400,5 +401,15 @@ export class AuthService {
     })
 
     return true
+  }
+
+  async updateUserProfile(userId: string, dto: UpdateUserDto) {
+    const user = await this.userService.findOne({ where: { id: userId } })
+
+    user.firstName = dto.firstName
+    user.lastName = dto.lastName
+    user.userName = dto.userName
+
+    return await user.save()
   }
 }

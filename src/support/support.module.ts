@@ -9,6 +9,7 @@ import { MailerModule } from '@app/mailer'
 import { AuthModule } from 'src/auth/auth.module'
 import { UserModule } from 'src/user/user.module'
 import { UploadModule } from '@app/upload'
+import { ClientModule } from 'src/client/client.module'
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UploadModule } from '@app/upload'
     MailerModule,
     AuthModule,
     UserModule,
+    ClientModule,
     UploadModule,
   ],
   controllers: [SupportController, SupportVisitorController],

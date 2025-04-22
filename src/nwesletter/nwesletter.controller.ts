@@ -7,7 +7,7 @@ import { AccessTokenGuard } from 'src/auth/guards/access-token.guard'
 import { SuperUserGuard } from 'src/auth/guards/super-user.guard'
 import { ApiTags } from '@nestjs/swagger'
 
-@Controller('nwesletter')
+@Controller('newsletter')
 @ApiTags('newsletter')
 export class NwesletterController {
   constructor(private readonly nwesletterService: NwesletterService) {}

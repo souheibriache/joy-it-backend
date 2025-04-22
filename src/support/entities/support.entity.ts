@@ -25,6 +25,9 @@ export class Support extends BaseEntity {
   @Column()
   email: string
 
+  @Column({ nullable: true })
+  companyName?: string
+
   @Column()
   subject: string
 

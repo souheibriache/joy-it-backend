@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator'
+import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator'
 import { PostQuestionUserDto } from './post-question-user.dto'
 
 export class PostQuestionVisitorDto extends PostQuestionUserDto {
@@ -19,4 +19,11 @@ export class PostQuestionVisitorDto extends PostQuestionUserDto {
   @IsString()
   @IsNotEmpty()
   lastName: string
+
+  @ApiProperty()
+  @IsPhoneNumber()
+  @IsNotEmpty()
+  phoneNumber: string
+
+  companyName?: string
 }
