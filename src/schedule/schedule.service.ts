@@ -53,15 +53,14 @@ export class ScheduleService {
     if (!currentOrder)
       throw new BadRequestException("You don't have valid orders")
     const scheduleDate = new Date(rest.date)
-    const startTime = scheduleDate.getTime().toString()
+    const startTime = scheduleDate.toLocaleTimeString()
     const endTime = scheduleDate
-      .setHours(scheduleDate.getTime() + activity.duration)
-      .toString()
+    endTime.setHours(scheduleDate.getHours() + activity.duration)
     const schedule = await this.scheduleRepository.create({
       company,
       activity,
       startTime,
-      endTime,
+      endTime: endTime.toLocaleTimeString(),
       ...rest,
     })
 
