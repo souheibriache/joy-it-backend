@@ -5,6 +5,7 @@ import {
   FindOptionsOrder,
   FindOptionsRelations,
   FindOptionsWhere,
+  LessThan,
   LessThanOrEqual,
   Repository,
 } from 'typeorm'
@@ -16,6 +17,7 @@ import { CompanyService } from 'src/company/company.service'
 import { Company } from 'src/company/entities'
 import { ServiceOrderStatus } from './enums/service-order-status.enum'
 import { CalculatePricingDto } from 'src/pricing/dto/calculate-pricing.dto'
+import { Cron, CronExpression } from '@nestjs/schedule'
 
 @Injectable()
 export class ServiceOrderService {
@@ -216,5 +218,23 @@ export class ServiceOrderService {
     order?: FindOptionsOrder<ServiceOrder>,
   ) {
     return await this.serviceOrderRepository.find({ where, relations, order })
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async expirePastOrders() {
+    const now = new Date()
+
+    // Option A: load and save
+    const expired = await this.serviceOrderRepository.find({
+      where: {
+        status: ServiceOrderStatus.ACTIVE,
+        endDate: LessThan(now),
+      },
+    })
+
+    if (expired.length) {
+      expired.forEach((o) => (o.status = ServiceOrderStatus.EXPIRED))
+      await this.serviceOrderRepository.save(expired)
+    }
   }
 }
