@@ -17,6 +17,7 @@ import { CreateScheduleDto } from './dto'
 import { UpdateScheduleDto } from './dto/update-schedule.dto'
 import { ScheduleStatusEnum } from './enums'
 import { ServiceOrderService } from 'src/service-order/service-order.service'
+import { Cron, CronExpression } from '@nestjs/schedule'
 
 @Injectable()
 export class ScheduleService {
@@ -148,5 +149,40 @@ export class ScheduleService {
     })
     await this.scheduleRepository.delete(id)
     return true
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async handleStatusUpdates() {
+    const now = new Date().getTime()
+
+    // 1) PENDING → ONGOING
+    const pendings = await this.scheduleRepository.find({
+      where: { status: ScheduleStatusEnum.PENDING },
+      relations: ['activity'],
+    })
+
+    for (const s of pendings) {
+      const startTs = new Date(s.date).getTime()
+      const endTs = startTs + s.activity.duration * 3600 * 1000
+      if (now >= startTs && now < endTs) {
+        s.status = ScheduleStatusEnum.ONGOING
+        await this.scheduleRepository.save(s)
+      }
+    }
+
+    // 2) ONGOING → COMPLETED
+    const ongoings = await this.scheduleRepository.find({
+      where: { status: ScheduleStatusEnum.ONGOING },
+      relations: ['activity'],
+    })
+
+    for (const s of ongoings) {
+      const startTs = new Date(s.date).getTime()
+      const endTs = startTs + s.activity.duration * 3600 * 1000
+      if (now >= endTs) {
+        s.status = ScheduleStatusEnum.COMPLETED
+        await this.scheduleRepository.save(s)
+      }
+    }
   }
 }
