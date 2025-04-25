@@ -29,14 +29,12 @@ export class ActivityFilterDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsNumber()
-  @Transform(({ value }) => Number(value))
+  @Transform(({ value }) => Number(value) || null)
   durationMin?: boolean
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsNumber()
-  @Transform(({ value }) => Number(value))
+  @Transform(({ value }) => Number(value) || null)
   durationMax?: boolean
 
   @ApiPropertyOptional()

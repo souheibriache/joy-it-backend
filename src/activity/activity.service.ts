@@ -3,14 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Activity, ActivityImage } from './entities'
 import {
   Brackets,
-  FindOptionsOrder,
-  FindOptionsRelations,
-  FindOptionsWhere,
-  Repository,
+  type FindOptionsOrder,
+  type FindOptionsRelations,
+  type FindOptionsWhere,
+  type Repository,
 } from 'typeorm'
-import { CloudinaryResponse } from '@app/upload/types/cloudinary-response.type'
-import {
-  ActivityFilterDto,
+import type { CloudinaryResponse } from '@app/upload/types/cloudinary-response.type'
+import type {
   ActivityOptionsDto,
   CreateActivityDto,
   updateActivityDto,
@@ -18,7 +17,7 @@ import {
   UpdateActivityMainImageDto,
 } from './dto'
 import { PageDto, PageMetaDto } from '@app/pagination/dto'
-import { IActivity } from './interfaces'
+import type { IActivity } from './interfaces'
 
 @Injectable()
 export class ActivityService {
@@ -189,9 +188,12 @@ export class ActivityService {
       sort,
       skip,
       take,
-      query = {} as ActivityFilterDto,
+      search,
+      type,
+      isAvailable,
+      durationMax,
+      durationMin,
     } = activityOptionsDto
-    const { search, types, isAvailable, durationMax, durationMin } = query
 
     const queryBuilder = this.activityRepository.createQueryBuilder('activity')
 
@@ -213,15 +215,11 @@ export class ActivityService {
       )
     }
 
-    if (types) {
-      queryBuilder.andWhere('activity.types && :types', { types })
+    if (type) {
+      queryBuilder.andWhere('activity.type = :type', { type })
     }
 
-    if (isAvailable === true || isAvailable === false) {
-      queryBuilder.andWhere('activity.isAvailable = :isAvailable', {
-        isAvailable,
-      })
-    }
+    queryBuilder.andWhere('activity.isAvailable = true')
 
     if (durationMin !== undefined) {
       queryBuilder.andWhere('activity.duration >= :durationMin', {

@@ -153,13 +153,7 @@ export class CompanyService {
     where: FindOptionsWhere<Company>,
     companyOptionsDto: CompanyOptionsDto,
   ): Promise<PageDto<ICompany>> {
-    const {
-      sort,
-      skip,
-      take,
-      query = {} as CompanyFilterDto,
-    } = companyOptionsDto
-    const { name, isVerified } = query
+    const { sort, skip, take, name, isVerified } = companyOptionsDto
 
     if (name) where.name = ILike(`%${name}%`)
 
