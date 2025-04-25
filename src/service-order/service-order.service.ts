@@ -155,8 +155,10 @@ export class ServiceOrderService {
   }
 
   async getSessionById(sessionId: string) {
-    const session =
-      await this.stripeClient.checkout.sessions.retrieve(sessionId)
+    const session = await this.stripeClient.checkout.sessions.retrieve(
+      sessionId,
+      { expand: ['payment_intent.charges'] },
+    )
     return session
   }
 

@@ -33,16 +33,13 @@ export class StripeController {
       console.error('Webhook signature verification failed:', err.message)
       return res.status(400).send(`Webhook Error: ${err.message}`)
     }
-    console.log({ event })
     // Handle event types
     switch (event.type) {
       case 'payment_intent.succeeded':
         const invoice = event.data.object as Stripe.Invoice
         const session = event.data.object as Stripe.Checkout.Session
         const orderId = session.metadata.orderId
-        console.log({ orderId })
         await this.serviceOrderService.confirmPayment(orderId)
-        console.log({ session })
         console.log(`Order ${orderId} confirmed and activated.`)
 
         break
