@@ -131,6 +131,9 @@ export class ServiceOrderService {
       success_url: `${process.env.FRONTEND_HOST}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_HOST}/payment-canceled`,
       metadata: { orderId: order.id },
+      payment_intent_data: {
+        metadata: { orderId: order.id },
+      },
     })
     order.stripeCheckoutSession = session.id
     await this.serviceOrderRepository.save(order)
