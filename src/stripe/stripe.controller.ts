@@ -39,7 +39,9 @@ export class StripeController {
         const invoice = event.data.object as Stripe.Invoice
         const session = event.data.object as Stripe.Checkout.Session
         const orderId = session.metadata.orderId
+        console.log({ orderId })
         await this.serviceOrderService.confirmPayment(orderId)
+        console.log({ session })
         console.log(`Order ${orderId} confirmed and activated.`)
 
         break
