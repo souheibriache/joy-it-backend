@@ -29,7 +29,7 @@ export class Activity extends BaseEntity {
   @Column({ default: false, type: 'boolean' })
   isInsideCompany: boolean
 
-  @Column({ name: 'duration', type: 'int' })
+  @Column({ name: 'duration', type: 'float', default: 1 })
   duration: number // Duration in hours
 
   @Column({ name: 'participants', type: 'int', default: 0 })
