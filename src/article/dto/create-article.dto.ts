@@ -2,11 +2,18 @@ import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator'
 import { CreateParagraphDto } from './create-paragraph.dto'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Transform, Type } from 'class-transformer'
+import { IsNotEmpty } from 'class-validator'
 
 export class CreateArticleDto {
   @ApiProperty()
   @IsString()
+  @IsNotEmpty()
   title: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  description: string
 
   @ApiProperty()
   @IsString()
@@ -20,20 +27,38 @@ export class CreateArticleDto {
   @IsString()
   conclusion: string
 
-  @ApiProperty({ type: [String] })
+  @ApiProperty({ type: [CreateParagraphDto] })
   @IsArray()
-  @IsString({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => CreateParagraphDto)
   @Transform(({ value }) => {
+    if (!value) return []
     if (typeof value === 'string') {
       try {
         return JSON.parse(value)
       } catch (e) {
-        throw new Error(`Invalid JSON for paragraphs: ${value}`)
+        return value
       }
     }
     return value
   })
-  tags: string[]
+  paragraphs: CreateParagraphDto[]
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => {
+    if (!value) return []
+    if (typeof value === 'string') {
+      try {
+        return value.split(',').map((tag) => tag.trim())
+      } catch (e) {
+        return value
+      }
+    }
+    return value
+  })
+  tags?: string[]
 
   @ApiPropertyOptional({
     type: 'string',
@@ -42,24 +67,4 @@ export class CreateArticleDto {
   })
   @IsOptional()
   thumbnailUrl?: string
-
-  @ApiPropertyOptional({
-    type: [CreateParagraphDto],
-    description: 'Paragraphs for the article',
-  })
-  @IsOptional()
-  @Type(() => CreateParagraphDto)
-  // @ValidateNested({ each: true })
-  @IsArray()
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value)
-      } catch (e) {
-        throw new Error(`Invalid JSON for paragraphs: ${value}`)
-      }
-    }
-    return value
-  })
-  paragraphs?: CreateParagraphDto[]
 }

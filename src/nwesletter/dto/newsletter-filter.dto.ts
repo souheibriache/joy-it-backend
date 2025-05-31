@@ -6,6 +6,10 @@ export class NewsletterFilterDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value.trim().toLowerCase())
+  @Transform(({ value }) => {
+    if (!value) return value
+    if (typeof value !== 'string') return value
+    return value.trim().toLowerCase()
+  })
   search?: string
 }

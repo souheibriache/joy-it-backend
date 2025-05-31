@@ -1,10 +1,9 @@
 import {
+  Injectable,
   CanActivate,
   ExecutionContext,
-  Injectable,
   UnauthorizedException,
 } from '@nestjs/common'
-import { extractTokenFromHeader } from '@app/common/utils/methods'
 import { ModuleRef } from '@nestjs/core'
 import { JwtAuthService } from '../services/jwt-auth.service'
 
@@ -14,25 +13,51 @@ export class AccessTokenGuard implements CanActivate {
 
   constructor(private moduleRef: ModuleRef) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  private async getJwtAuthService(): Promise<JwtAuthService> {
     if (!this.jwtAuthService) {
       this.jwtAuthService = this.moduleRef.get(JwtAuthService, {
         strict: false,
       })
     }
+    return this.jwtAuthService
+  }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest()
-    const token = extractTokenFromHeader(request)
-    if (!token) throw new UnauthorizedException()
 
-    const payload = await this.jwtAuthService.verifyToken(token)
-    if (!payload) throw new UnauthorizedException()
+    if (!request) {
+      throw new UnauthorizedException('Invalid request')
+    }
 
-    //? We're assigning the payload to the request object here
-    //? so that we can access it in our route handlers
-    const { sub, ...rest } = payload
+    const authHeader = request.headers.authorization
+    if (!authHeader || !authHeader.length) {
+      throw new UnauthorizedException('No authorization header')
+    }
 
-    request.user = { id: sub, ...rest }
+    const [type, token] = authHeader.split(' ')
+    if (type !== 'Bearer' || !token || typeof token !== 'string') {
+      throw new UnauthorizedException('Invalid token format')
+    }
 
-    return true
+    try {
+      const jwtService = await this.getJwtAuthService()
+      const payload = await jwtService.verifyToken(token)
+
+      if (!payload || !payload.sub) {
+        throw new UnauthorizedException('Invalid token payload')
+      }
+
+      request.user = {
+        id: payload.sub,
+        ...(payload.email && { email: payload.email }),
+        ...(payload.role && { role: payload.role }),
+        ...(payload.metadata && { metadata: payload.metadata }),
+        ...(payload.permissions && { permissions: payload.permissions }),
+      }
+
+      return true
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token')
+    }
   }
 }

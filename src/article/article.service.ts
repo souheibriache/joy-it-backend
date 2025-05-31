@@ -29,6 +29,38 @@ export class ArticleService {
     private readonly uploadService: UploadService,
     private readonly mediaService: MediaService,
   ) {}
+
+  async create(createArticleDto: CreateArticleDto) {
+    const article = this.articleRepository.create(createArticleDto)
+    return await this.articleRepository.save(article)
+  }
+
+  async findOne(where: FindOptionsWhere<Article>) {
+    return await this.articleRepository.findOne({ where })
+  }
+
+  async getPaginated(pageOptionsDto: ArticleOptionsDto) {
+    const queryBuilder = this.articleRepository.createQueryBuilder('article')
+
+    if (pageOptionsDto.orderBy) {
+      queryBuilder.orderBy(`article.${pageOptionsDto.orderBy}`, 'ASC')
+    }
+
+    queryBuilder.skip(pageOptionsDto.skip).take(pageOptionsDto.take)
+
+    const [items, itemCount] = await queryBuilder.getManyAndCount()
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto,
+    })
+
+    return {
+      items,
+      meta: pageMetaDto,
+    }
+  }
+
   async createArticle(
     createArticleDto: CreateArticleDto,
     uploadedThumbnail: Express.Multer.File | null,

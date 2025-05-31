@@ -65,7 +65,8 @@
       ],
       "@app/mailer/*": [
         "libs/mailer/src/*"
-      ]
+      ],
+      "src/*": ["src/*"]
     }
   }
 }

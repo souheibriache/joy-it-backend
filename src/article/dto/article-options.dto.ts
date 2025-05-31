@@ -1,7 +1,7 @@
 import { OrderOptionsDto, PageOptionsDto } from '@app/pagination/dto'
-import { ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
-import { IsOptional, ValidateNested } from 'class-validator'
+import { IsOptional, ValidateNested, IsString } from 'class-validator'
 import { ArticleFilterDto } from './article-filter.dto'
 
 export class ArticleOptionsDto extends PageOptionsDto {
@@ -16,4 +16,9 @@ export class ArticleOptionsDto extends PageOptionsDto {
   @Type(() => OrderOptionsDto)
   @ValidateNested()
   readonly sort?: OrderOptionsDto
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  orderBy?: string
 }

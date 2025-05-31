@@ -10,12 +10,20 @@ export class UserVerifiedGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (!this.clientService) {
-      this.clientService = this.moduleRef.get(ClientService, { strict: false })
+      this.clientService = this.moduleRef.get(ClientService, {
+        strict: false,
+      })
     }
 
     const request = context.switchToHttp().getRequest()
-    const user = request.user
+    if (!request || !request.user || !request.user.sub) {
+      return false
+    }
 
-    return await this.clientService.isVerified(user.sub)
+    try {
+      return await this.clientService.isVerified(request.user.sub)
+    } catch (error) {
+      return false
+    }
   }
 }

@@ -14,6 +14,7 @@ import {
 } from 'typeorm'
 import { IUser } from './interfaces/user.interface'
 import { CreateUserDto } from './dto/create-user.dto'
+import { UpdateUserDto } from './dto/update-user.dto'
 
 @Injectable()
 export class UserService {
@@ -61,5 +62,29 @@ export class UserService {
 
   async getOneById(id: string): Promise<IUser> {
     return await this.findOne({ where: { id } })
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<IUser> {
+    const user = await this.getOneById(id)
+
+    try {
+      const updatedUser = this.userRepository.merge(user, updateUserDto)
+      return await this.userRepository.save(updatedUser)
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('Failed to update user')
+    }
+  }
+
+  async remove(id: string) {
+    const user = await this.getOneById(id)
+
+    try {
+      await this.userRepository.remove(user)
+      return { message: 'User deleted successfully' }
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('Failed to delete user')
+    }
   }
 }

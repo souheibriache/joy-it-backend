@@ -6,9 +6,11 @@ import {
 @ValidatorConstraint({ name: 'isUnique', async: false })
 export class IsUnique implements ValidatorConstraintInterface {
   validate(values: any[]): boolean {
-    return values.length === Array.from(new Set(values)).length
+    if (!values) return true
+    if (!Array.isArray(values)) return true
+    return values.length === new Set(values).size
   }
   defaultMessage(): string {
-    return 'Duplicate elements'
+    return 'Duplicate elements are not allowed'
   }
 }

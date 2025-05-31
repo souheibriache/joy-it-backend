@@ -27,5 +27,6 @@
     "@app/media": "<rootDir>/../libs/media/src",
     "@app/mailer/(.*)": "<rootDir>/../libs/mailer/src/$1",
     "@app/mailer": "<rootDir>/../libs/mailer/src"
-  }
+  },
+  "setupFiles": ["<rootDir>/test/setup.ts"]
 }

@@ -1,13 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsNumber, IsOptional, IsString } from 'class-validator'
+import { IsNumber, IsOptional, IsString, IsNotEmpty } from 'class-validator'
 
 export class CreateParagraphDto {
   @ApiProperty()
   @IsString()
+  @IsNotEmpty()
   title: string
 
   @ApiProperty()
   @IsString()
+  @IsNotEmpty()
   content: string
 
   @ApiProperty()
@@ -22,4 +24,9 @@ export class CreateParagraphDto {
   @IsOptional()
   @IsNumber()
   imageIndex?: number
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  imageUrl?: string
 }
