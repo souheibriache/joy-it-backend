@@ -10,11 +10,20 @@ export class SuperUserGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (!this.authService) {
-      this.authService = this.moduleRef.get(AuthService, { strict: false })
+      this.authService = this.moduleRef.get(AuthService, {
+        strict: false,
+      })
     }
-    const request = context.switchToHttp().getRequest()
-    const user = request.user
 
-    return await this.authService.isSuperUser(user.id)
+    const request = context.switchToHttp().getRequest()
+    if (!request || !request.user || !request.user.id) {
+      return false
+    }
+
+    try {
+      return await this.authService.isSuperUser(request.user.id)
+    } catch (error) {
+      return false
+    }
   }
 }

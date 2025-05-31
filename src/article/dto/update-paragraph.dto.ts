@@ -1,29 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsOptional, IsString, IsUUID } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator'
 
 export class UpdateParagraphDto {
-  @ApiProperty({ description: 'Paragraph title' })
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   title?: string
 
-  @ApiProperty()
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  subtitle?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
+  @IsNotEmpty()
   content?: string
 
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Optional new image for the paragraph',
-  })
+  @ApiPropertyOptional()
   @IsOptional()
+  @IsUrl()
   imageUrl?: string
 }

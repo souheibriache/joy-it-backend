@@ -176,4 +176,19 @@ export class ArticleController {
     await this.articleService.deleteArticle(id)
     return { message: 'Article deleted successfully' }
   }
+
+  @Post()
+  async create(@Body() createArticleDto: CreateArticleDto) {
+    return await this.articleService.create(createArticleDto)
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return await this.articleService.findOne({ id })
+  }
+
+  @Get()
+  async getPaginated(@Query() pageOptionsDto: ArticleOptionsDto) {
+    return await this.articleService.getPaginated(pageOptionsDto)
+  }
 }

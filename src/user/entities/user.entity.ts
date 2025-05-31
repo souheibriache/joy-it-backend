@@ -6,6 +6,7 @@ import {
   JoinColumn,
   OneToMany,
   TableInheritance,
+  OneToOne,
 } from 'typeorm'
 import { UserRoles } from '../enums/user-roles.enum'
 import { Password } from 'src/auth/entities/password-history'
@@ -21,35 +22,34 @@ import { Article } from 'src/article/entities'
   },
 })
 export class User extends BaseEntity {
-  @Column({ name: 'user_name' })
+  @Column({ unique: true })
   userName: string
 
-  @OneToMany(() => Password, (password: Password) => password.user, {
-    cascade: true,
-  })
-  passwords: string
-
-  @Column({ type: String, nullable: false })
+  @Column({ unique: true })
   email: string
 
-  @Column({ name: 'first_name' })
+  @Column()
   firstName: string
 
-  @Column({ name: 'last_name' })
+  @Column()
   lastName: string
 
-  @Column({ type: 'enum', enum: UserRoles, default: UserRoles.CLIENT })
-  role: UserRoles
-
-  @Column({ type: 'boolean', default: false })
-  isSuperUser: boolean
-
-  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user, {
-    cascade: true,
-    onDelete: 'CASCADE',
+  @Column({
+    type: 'enum',
+    enum: UserRoles,
+    default: UserRoles.CLIENT,
   })
+  role: UserRoles = UserRoles.CLIENT
+
+  @Column({ default: false })
+  isSuperUser: boolean = false
+
+  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[]
 
-  @OneToMany(() => Article, (article: Article) => article.author)
+  @OneToMany(() => Article, (article) => article.author)
   articles: Article[]
+
+  @OneToOne(() => Password, (password) => password.user)
+  passwords: string
 }

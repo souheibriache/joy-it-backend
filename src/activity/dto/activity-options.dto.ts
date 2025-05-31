@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger'
-import { PageOptionsDto } from '../../../libs/pagination/src/dto/page-options.dto'
+import { PageOptionsDto } from '@app/pagination/dto'
 import {
   IsOptional,
   IsEnum,
@@ -7,49 +7,101 @@ import {
   IsString,
   IsBoolean,
   Validate,
+  IsArray,
+  Min,
 } from 'class-validator'
 import { Type } from 'class-transformer'
 import { OrderOptionsDto } from '../../../libs/pagination/src/dto/order-options.dto'
 import { Transform } from 'class-transformer'
 import { ActivityType } from '../enums/activity-type.enum'
 import { IsUnique } from '@app/pagination/decorators/is-unique-decorator'
-import { Int32 } from 'typeorm'
+import { Order } from '@app/pagination/constants'
 
 export class ActivityOptionsDto extends PageOptionsDto {
-  // Filter properties moved directly into ActivityOptionsDto
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString({ message: 'Invalid search field' })
-  @Transform(({ value }) => value?.trim().toLowerCase())
-  readonly search?: string
+  @IsNumber()
+  @Min(1)
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    const num = Number(value)
+    return isNaN(num) ? value : num
+  })
+  page?: number
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    const num = Number(value)
+    return isNaN(num) ? value : num
+  })
+  take?: number
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    if (typeof value !== 'string') return value
+    return value.trim().toLowerCase()
+  })
+  search?: string
+
+  @ApiPropertyOptional({ enum: ActivityType, isArray: true })
+  @IsOptional()
+  @IsArray()
+  @IsEnum(ActivityType, { each: true })
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    if (Array.isArray(value)) return value
+    if (typeof value === 'string') return value.split(',').map((v) => v.trim())
+    return value
+  })
+  types?: ActivityType[]
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    const num = Number(value)
+    return isNaN(num) ? value : num
+  })
+  durationMin?: number
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    const num = Number(value)
+    return isNaN(num) ? value : num
+  })
+  durationMax?: number
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    return typeof value === 'string' ? value === 'true' : value
+  })
+  isAvailable?: boolean
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  sort?: Record<string, Order>
 
   @ApiPropertyOptional({ enum: ActivityType })
+  @IsOptional()
   @IsEnum(ActivityType)
-  @IsOptional()
-  readonly type?: ActivityType
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  @Transform(({ value }) => (Number(value) === 0 ? 0 : Number(value)))
-  readonly durationMin?: number
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  @Transform(({ value }) => (Number(value) === 0 ? 1000 : Number(value)))
-  readonly durationMax?: number
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean({ message: 'Invalid value' })
-  @Transform(({ value }) => true)
-  readonly isAvailable?: boolean
-
-  // Sort options remain the same
-  @ApiPropertyOptional()
-  @IsOptional()
-  @Type(() => OrderOptionsDto)
-  @Validate(IsUnique)
-  readonly sort?: OrderOptionsDto
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    return value
+  })
+  type?: ActivityType
 }

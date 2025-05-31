@@ -15,7 +15,11 @@ export class ActivityFilterDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString({ message: 'Invalid search field' })
-  @Transform(({ value }) => value.trim().toLowerCase())
+  @Transform(({ value }) => {
+    if (!value) return value
+    if (typeof value !== 'string') return value
+    return value.trim().toLowerCase()
+  })
   search?: string
 
   @ApiPropertyOptional({ enum: ActivityType, isArray: true })
@@ -39,7 +43,10 @@ export class ActivityFilterDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsBoolean({ message: 'Invalid value' })
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }) => {
+    if (!value) return undefined
+    return typeof value === 'string' ? value === 'true' : value
+  })
+  @IsBoolean()
   isAvailable?: boolean
 }
